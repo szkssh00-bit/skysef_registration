@@ -21,59 +21,421 @@ body{font-family:"Helvetica Neue",Arial,"Hiragino Kaku Gothic ProN","Hiragino Sa
 .full{grid-column:1/-1}
 .eyebrow{color:var(--cyan);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.82rem}
 h1,h2{color:var(--navy);line-height:1.15;margin:10px 0 22px;letter-spacing:-.04em}
-h1{font-size:clamp(2rem,4vw,3.2rem)}h2{font-size:2rem}
+h1{font-size:clamp(2rem,4vw,3.2rem)}
+h2{font-size:2rem}
 .btn{border-radius:999px;padding:11px 18px;font-weight:900;cursor:pointer;display:inline-flex;margin:4px;border:0}
-.primary{background:var(--navy);color:#fff}.secondary{background:#eef5fb;color:var(--navy);border:1px solid #c8d6e4}
+.primary{background:var(--navy);color:#fff}
+.secondary{background:#eef5fb;color:var(--navy);border:1px solid #c8d6e4}
 .btn:disabled{opacity:.55;cursor:not-allowed}
-.qr-reader{width:100%;max-width:520px;min-height:360px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#071426}
-.note{margin-top:10px;color:var(--muted);font-size:.9rem}.error{color:#d93025;font-weight:800}.success{color:#137333;font-weight:800}
+.qr-reader{width:100%;max-width:620px;min-height:430px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#071426}
+.note{margin-top:10px;color:var(--muted);font-size:.9rem}
+.error{color:#d93025;font-weight:800}
+.success{color:#137333;font-weight:800}
 .latest{border-radius:20px;padding:22px;border:1px solid var(--line);background:#f8fbfe}
 .latest-name{font-size:2.2rem;line-height:1.15;font-weight:900;color:var(--navy);margin-bottom:8px}
 .latest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.success-card{background:#effaf1;border-color:#b7dfbf}.warning-card{background:#fff7e8;border-color:#ffd49a}.error-card{background:#fff0f0;border-color:#f2b8b5;color:#b3261e}
+.success-card{background:#effaf1;border-color:#b7dfbf}
+.warning-card{background:#fff7e8;border-color:#ffd49a}
+.error-card{background:#fff0f0;border-color:#f2b8b5;color:#b3261e}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px}
-.stat{background:#f8fbfe;border:1px solid var(--line);border-radius:18px;padding:18px}.stat b{display:block;font-size:2.4rem;color:var(--navy);line-height:1}.stat span{color:var(--muted);font-weight:900}
-.list{display:grid;gap:10px;max-height:520px;overflow:auto}.item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbfe;display:grid;gap:2px}.item b{color:var(--navy)}.item span{color:var(--muted);font-size:.92rem}
-.view{display:none}.view.active{display:block}
-.name-card{background:linear-gradient(135deg,var(--navy),#123d68);color:#fff;border-radius:24px;padding:28px;margin:22px 0}.label{color:#8de7ff;font-weight:900;letter-spacing:.1em;font-size:.82rem}.participant-name{font-size:clamp(2rem,7vw,4.2rem);line-height:1.1;font-weight:900;margin-top:8px}
-table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;padding:15px 17px;border-bottom:1px solid var(--line);vertical-align:top}th{width:170px;background:var(--navy);color:#fff}td{font-weight:700}
-.field{margin-top:13px}.field label{display:block;color:var(--navy);font-weight:900;font-size:.9rem;margin-bottom:5px}.field input,.field textarea{width:100%;border:1px solid #b8c7d7;border-radius:12px;padding:10px 12px;outline:none;background:#fff}.field textarea{min-height:110px;resize:vertical}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.latest-grid{grid-template-columns:1fr}.card{padding:26px}th,td{display:block;width:100%}.nav-inner{align-items:flex-start;flex-direction:column}}
+.stat{background:#f8fbfe;border:1px solid var(--line);border-radius:18px;padding:18px}
+.stat b{display:block;font-size:2.4rem;color:var(--navy);line-height:1}
+.stat span{color:var(--muted);font-weight:900}
+.list{display:grid;gap:10px;max-height:520px;overflow:auto}
+.item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbfe;display:grid;gap:2px}
+.item b{color:var(--navy)}
+.item span{color:var(--muted);font-size:.92rem}
+.view{display:none}
+.view.active{display:block}
+.name-card{background:linear-gradient(135deg,var(--navy),#123d68);color:#fff;border-radius:24px;padding:28px;margin:22px 0}
+.label{color:#8de7ff;font-weight:900;letter-spacing:.1em;font-size:.82rem}
+.participant-name{font-size:clamp(2rem,7vw,4.2rem);line-height:1.1;font-weight:900;margin-top:8px}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{text-align:left;padding:15px 17px;border-bottom:1px solid var(--line);vertical-align:top}
+th{width:170px;background:var(--navy);color:#fff}
+td{font-weight:700}
+.field{margin-top:13px}
+.field label{display:block;color:var(--navy);font-weight:900;font-size:.9rem;margin-bottom:5px}
+.field input,.field textarea{width:100%;border:1px solid #b8c7d7;border-radius:12px;padding:10px 12px;outline:none;background:#fff}
+.field textarea{min-height:110px;resize:vertical}
+@media(max-width:900px){
+.grid{grid-template-columns:1fr}
+.stats{grid-template-columns:1fr}
+.latest-grid{grid-template-columns:1fr}
+.card{padding:26px}
+th,td{display:block;width:100%}
+.nav-inner{align-items:flex-start;flex-direction:column}
+.qr-reader{max-width:100%;min-height:360px}
+}
 </style>
 </head>
 <body>
-<nav class="nav"><div class="container nav-inner"><div class="brand">SKYSEF 2026 QR System</div><div class="nav-links"><button class="nav-button" onclick="showStaff()">Reception</button><button class="nav-button" onclick="promptParticipant()">Participant Test</button></div></div></nav>
+<nav class="nav">
+  <div class="container nav-inner">
+    <div class="brand">SKYSEF 2026 QR System</div>
+    <div class="nav-links">
+      <button class="nav-button" onclick="showStaff()">Reception</button>
+      <button class="nav-button" onclick="promptParticipant()">Participant Test</button>
+    </div>
+  </div>
+</nav>
+
 <main>
-<section id="participant-view" class="section view"><div class="container"><div class="card"><div class="eyebrow">Participant Information</div><h1>Your SKYSEF Information</h1><div id="participant-content"></div></div></div></section>
-<section id="correction-view" class="section view"><div class="container"><div class="card"><div class="eyebrow">Correction Request</div><h1>Name Correction</h1><div class="field"><label>ID</label><input id="correction-id" readonly></div><div class="field"><label>Corrected Name</label><input id="corrected-name"></div><div class="field"><label>Note</label><textarea id="correction-note"></textarea></div><button class="btn primary" onclick="submitCorrection()">Submit</button><button class="btn secondary" onclick="showParticipant(document.getElementById('correction-id').value)">Back</button><p id="correction-message" class="note"></p></div></div></section>
-<section id="staff-view" class="section view"><div class="container"><div class="grid">
-<section class="card"><div class="eyebrow">Reception</div><h1>QR Check-in</h1><button id="start-camera-button" class="btn primary" onclick="startCamera()">カメラを起動</button><button id="stop-camera-button" class="btn secondary" onclick="stopCamera()" disabled>カメラを停止</button><div id="reader" class="qr-reader"></div><p id="scan-status" class="note">カメラ起動ボタンを押してください。</p></section>
-<section class="card"><div class="eyebrow">Latest Result</div><h2 id="result-title">Waiting</h2><div id="latest-card" class="latest">Please scan a name tag QR code.</div></section>
-<section class="card full"><div class="stats"><div class="stat"><b id="total-count">0</b><span>Total</span></div><div class="stat"><b id="present-count">0</b><span>Checked in</span></div><div class="stat"><b id="absent-count">0</b><span>Not checked in</span></div></div><h2>Not Checked-in List</h2><div id="absent-list" class="list"></div></section>
-</div></div></section>
+<section id="participant-view" class="section view">
+  <div class="container">
+    <div class="card">
+      <div class="eyebrow">Participant Information</div>
+      <h1>Your SKYSEF Information</h1>
+      <div id="participant-content"></div>
+    </div>
+  </div>
+</section>
+
+<section id="correction-view" class="section view">
+  <div class="container">
+    <div class="card">
+      <div class="eyebrow">Correction Request</div>
+      <h1>Name Correction</h1>
+      <div class="field">
+        <label>ID</label>
+        <input id="correction-id" readonly>
+      </div>
+      <div class="field">
+        <label>Corrected Name</label>
+        <input id="corrected-name">
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <textarea id="correction-note"></textarea>
+      </div>
+      <button class="btn primary" onclick="submitCorrection()">Submit</button>
+      <button class="btn secondary" onclick="showParticipant(document.getElementById('correction-id').value)">Back</button>
+      <p id="correction-message" class="note"></p>
+    </div>
+  </div>
+</section>
+
+<section id="staff-view" class="section view">
+  <div class="container">
+    <div class="grid">
+      <section class="card">
+        <div class="eyebrow">Reception</div>
+        <h1>QR Check-in</h1>
+        <button id="start-camera-button" class="btn primary" onclick="startCamera()">カメラを起動</button>
+        <button id="stop-camera-button" class="btn secondary" onclick="stopCamera()" disabled>カメラを停止</button>
+        <div id="reader" class="qr-reader"></div>
+        <p id="scan-status" class="note">カメラ起動ボタンを押してください。</p>
+      </section>
+
+      <section class="card">
+        <div class="eyebrow">Latest Result</div>
+        <h2 id="result-title">Waiting</h2>
+        <div id="latest-card" class="latest">Please scan a name tag QR code.</div>
+      </section>
+
+      <section class="card full">
+        <div class="stats">
+          <div class="stat"><b id="total-count">0</b><span>Total</span></div>
+          <div class="stat"><b id="present-count">0</b><span>Checked in</span></div>
+          <div class="stat"><b id="absent-count">0</b><span>Not checked in</span></div>
+        </div>
+        <h2>Not Checked-in List</h2>
+        <div id="absent-list" class="list"></div>
+      </section>
+    </div>
+  </div>
+</section>
 </main>
+
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxV4W89RQFlkyWDjuLOxZ-EYkdqnnqeZ9-f0wm1X8oFgpCL8vAyXp6FywqdfwUZY6bN/exec";
-let lastId='',lastTime=0,processing=false,qr=null,cameraRunning=false;
-function init(){const p=new URLSearchParams(location.search);const mode=p.get('mode')||'';const id=p.get('id')||'';if(mode==='staff'){showStaff();return}if(id){showParticipant(id);return}showStaff()}
-function active(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function showStaff(){history.replaceState(null,'',location.pathname+'?mode=staff');active('staff-view');loadSummary()}
-function promptParticipant(){const id=prompt('Participant ID');if(id)showParticipant(id)}
-async function showParticipant(id){id=String(id||'').trim();history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(id));active('participant-view');const box=document.getElementById('participant-content');box.innerHTML='<p class="note">Loading...</p>';try{const d=await gasGet({api:'participant',id});if(!d.ok||!d.participant){box.innerHTML='<p class="error">This ID was not found: '+esc(id)+'</p>';return}const p=d.participant;box.innerHTML=`<div class="name-card"><div class="label">Name</div><div class="participant-name">${esc(p.Name)}</div></div><table><tr><th>Region</th><td>${esc(p.Region)}</td></tr><tr><th>School</th><td>${esc(p.School)}</td></tr><tr><th>Name</th><td>${esc(p.Name)}</td></tr><tr><th>Oral No.</th><td>${esc(p.OralNo)}</td></tr><tr><th>Poster No.</th><td>${esc(p.PosterNo)}</td></tr><tr><th>IJP1 Group</th><td>${esc(p.IJP1)}</td></tr><tr><th>IJP2 Group</th><td>${esc(p.IJP2)}</td></tr></table><button class="btn primary" onclick="showCorrection('${js(id)}')">Request name correction</button>${p.CorrectionStatus?'<p class="note">Correction status: '+esc(p.CorrectionStatus)+'</p>':''}`}catch(e){box.innerHTML='<p class="error">'+esc(e.message||String(e))+'</p>'}}
-function showCorrection(id){active('correction-view');document.getElementById('correction-id').value=id;document.getElementById('corrected-name').value='';document.getElementById('correction-note').value='';document.getElementById('correction-message').textContent=''}
-async function submitCorrection(){const id=document.getElementById('correction-id').value;const correctedName=document.getElementById('corrected-name').value;const note=document.getElementById('correction-note').value;const m=document.getElementById('correction-message');m.className='note';m.textContent='Submitting...';try{const d=await gasGet({api:'correction',id,correctedName,note});m.textContent=d.ok?d.message:d.error;m.className=d.ok?'success':'error'}catch(e){m.textContent=e.message||String(e);m.className='error'}}
-function extractId(txt){try{return new URL(txt).searchParams.get('id')||''}catch(e){const m=String(txt||'').match(/[?&]id=([^&]+)/);return m?decodeURIComponent(m[1]):String(txt||'').trim()}}
-function startCamera(){if(cameraRunning)return;const st=document.getElementById('scan-status'),sb=document.getElementById('start-camera-button'),tb=document.getElementById('stop-camera-button');st.textContent='カメラを起動しています...';sb.disabled=true;if(!qr)qr=new Html5Qrcode('reader');qr.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:280},aspectRatio:1},onScanSuccess,()=>{}).then(()=>{cameraRunning=true;st.textContent='カメラ起動中です。QRコードをかざしてください。';tb.disabled=false}).catch(err=>{cameraRunning=false;st.textContent='カメラを起動できませんでした: '+err;sb.disabled=false;tb.disabled=true})}
-function stopCamera(){if(!qr||!cameraRunning)return;const st=document.getElementById('scan-status'),sb=document.getElementById('start-camera-button'),tb=document.getElementById('stop-camera-button');st.textContent='カメラを停止しています...';qr.stop().then(()=>{cameraRunning=false;st.textContent='カメラを停止しました。';sb.disabled=false;tb.disabled=true}).catch(err=>st.textContent='カメラ停止時にエラーが発生しました: '+err)}
-function onScanSuccess(txt){const id=extractId(txt),now=Date.now();if(!id||processing||(id===lastId&&now-lastTime<3500))return;lastId=id;lastTime=now;processing=true;document.getElementById('scan-status').textContent='Processing: '+id;gasGet({api:'checkin',id}).then(d=>{renderResult(d,id);if(d.summary)renderSummary(d.summary);setTimeout(()=>{processing=false;if(cameraRunning)document.getElementById('scan-status').textContent='Ready for next scan.'},900)}).catch(e=>{renderError(e.message||String(e));processing=false})}
-async function loadSummary(){try{const d=await gasGet({api:'summary'});if(d.ok)renderSummary(d.summary);else renderError(d.error||'Summary API error.')}catch(e){renderError(e.message||String(e))}}
-async function gasGet(params){const u=new URL(GAS_URL);Object.keys(params).forEach(k=>u.searchParams.set(k,params[k]));u.searchParams.set('t',Date.now());const r=await fetch(u.toString(),{method:'GET',cache:'no-store'});if(!r.ok)throw new Error('GAS response error: '+r.status);return await r.json()}
-function renderResult(d,id){const t=document.getElementById('result-title'),c=document.getElementById('latest-card');if(!d||!d.ok){t.textContent='Error';c.className='latest error-card';c.innerHTML='<b>'+esc((d&&d.error)||'Error')+'</b><br>ID: '+esc(id);return}const p=d.participant||{};t.textContent=d.status||'Checked in.';c.className=d.status==='Already checked in.'?'latest warning-card':'latest success-card';c.innerHTML=`<div class="latest-name">${esc(p.Name)}</div><div>${esc(p.School)}</div><div class="latest-grid"><span>Region: <b>${esc(p.Region)}</b></span><span>Oral: <b>${esc(p.OralNo)}</b></span><span>Poster: <b>${esc(p.PosterNo)}</b></span><span>IJP1: <b>${esc(p.IJP1)}</b></span><span>IJP2: <b>${esc(p.IJP2)}</b></span></div>`}
-function renderSummary(s){if(!s)return;document.getElementById('total-count').textContent=s.total||0;document.getElementById('present-count').textContent=s.present||0;document.getElementById('absent-count').textContent=s.absent||0;const list=document.getElementById('absent-list');list.innerHTML='';(s.absentList||[]).forEach(p=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<b>${esc(p.Name)}</b><span>${esc(p.School)}</span><span>Oral: ${esc(p.OralNo||'-')} / Poster: ${esc(p.PosterNo||'-')} / IJP1: ${esc(p.IJP1||'-')} / IJP2: ${esc(p.IJP2||'-')}</span>`;list.appendChild(d)})}
-function renderError(msg){document.getElementById('result-title').textContent='Error';const c=document.getElementById('latest-card');c.className='latest error-card';c.textContent=msg}
-function esc(v){return String(v||'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
-function js(v){return String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
-window.addEventListener('load',()=>{init();setInterval(()=>{if(document.getElementById('staff-view').classList.contains('active'))loadSummary()},15000)})
+const GAS_URL='https://script.google.com/macros/s/AKfycbxV4W89RQFlkyWDjuLOxZ-EYkdqnnqeZ9-f0wm1X8oFgpCL8vAyXp6FywqdfwUZY6bN/exec';
+
+let lastId='';
+let lastTime=0;
+let processing=false;
+let qr=null;
+let cameraRunning=false;
+
+function init(){
+  const p=new URLSearchParams(location.search);
+  const mode=p.get('mode')||'';
+  const id=p.get('id')||'';
+  if(mode==='staff'){
+    showStaff();
+    return;
+  }
+  if(id){
+    showParticipant(id);
+    return;
+  }
+  showStaff();
+}
+
+function active(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showStaff(){
+  history.replaceState(null,'',location.pathname+'?mode=staff');
+  active('staff-view');
+  loadSummary();
+}
+
+function promptParticipant(){
+  const id=prompt('Participant ID');
+  if(id)showParticipant(id);
+}
+
+async function showParticipant(id){
+  id=String(id||'').trim();
+  history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(id));
+  active('participant-view');
+
+  const box=document.getElementById('participant-content');
+  box.innerHTML='<p class="note">Loading...</p>';
+
+  try{
+    const d=await gasGet({api:'participant',id});
+    if(!d.ok||!d.participant){
+      box.innerHTML='<p class="error">This ID was not found: '+esc(id)+'</p>';
+      return;
+    }
+
+    const p=d.participant;
+    box.innerHTML=
+      '<div class="name-card">'+
+        '<div class="label">Name</div>'+
+        '<div class="participant-name">'+esc(p.Name)+'</div>'+
+      '</div>'+
+      '<table>'+
+        '<tr><th>Region</th><td>'+esc(p.Region)+'</td></tr>'+
+        '<tr><th>School</th><td>'+esc(p.School)+'</td></tr>'+
+        '<tr><th>Name</th><td>'+esc(p.Name)+'</td></tr>'+
+        '<tr><th>Oral No.</th><td>'+esc(p.OralNo)+'</td></tr>'+
+        '<tr><th>Poster No.</th><td>'+esc(p.PosterNo)+'</td></tr>'+
+        '<tr><th>IJP1 Group</th><td>'+esc(p.IJP1)+'</td></tr>'+
+        '<tr><th>IJP2 Group</th><td>'+esc(p.IJP2)+'</td></tr>'+
+      '</table>'+
+      '<button class="btn primary" onclick="showCorrection(\\''+js(id)+'\\')">Request name correction</button>'+
+      (p.CorrectionStatus?'<p class="note">Correction status: '+esc(p.CorrectionStatus)+'</p>':'');
+  }catch(e){
+    box.innerHTML='<p class="error">'+esc(e.message||String(e))+'</p>';
+  }
+}
+
+function showCorrection(id){
+  active('correction-view');
+  document.getElementById('correction-id').value=id;
+  document.getElementById('corrected-name').value='';
+  document.getElementById('correction-note').value='';
+  document.getElementById('correction-message').textContent='';
+}
+
+async function submitCorrection(){
+  const id=document.getElementById('correction-id').value;
+  const correctedName=document.getElementById('corrected-name').value;
+  const note=document.getElementById('correction-note').value;
+  const m=document.getElementById('correction-message');
+
+  m.className='note';
+  m.textContent='Submitting...';
+
+  try{
+    const d=await gasGet({api:'correction',id,correctedName,note});
+    m.textContent=d.ok?d.message:d.error;
+    m.className=d.ok?'success':'error';
+  }catch(e){
+    m.textContent=e.message||String(e);
+    m.className='error';
+  }
+}
+
+function extractId(txt){
+  try{
+    return new URL(txt).searchParams.get('id')||'';
+  }catch(e){
+    const m=String(txt||'').match(/[?&]id=([^&]+)/);
+    return m?decodeURIComponent(m[1]):String(txt||'').trim();
+  }
+}
+
+function startCamera(){
+  if(cameraRunning)return;
+
+  const st=document.getElementById('scan-status');
+  const sb=document.getElementById('start-camera-button');
+  const tb=document.getElementById('stop-camera-button');
+
+  st.textContent='カメラを起動しています...';
+  sb.disabled=true;
+
+  if(!qr)qr=new Html5Qrcode('reader');
+
+  const config={
+    fps:15,
+    qrbox:{width:360,height:360},
+    aspectRatio:1.0,
+    rememberLastUsedCamera:true
+  };
+
+  qr.start(
+    {facingMode:'environment'},
+    config,
+    onScanSuccess,
+    ()=>{}
+  ).then(()=>{
+    cameraRunning=true;
+    st.textContent='カメラ起動中です。QRコードを大きく写してください。';
+    tb.disabled=false;
+  }).catch(err=>{
+    cameraRunning=false;
+    st.textContent='カメラを起動できませんでした: '+err;
+    sb.disabled=false;
+    tb.disabled=true;
+  });
+}
+
+function stopCamera(){
+  if(!qr||!cameraRunning)return;
+
+  const st=document.getElementById('scan-status');
+  const sb=document.getElementById('start-camera-button');
+  const tb=document.getElementById('stop-camera-button');
+
+  st.textContent='カメラを停止しています...';
+
+  qr.stop().then(()=>{
+    cameraRunning=false;
+    st.textContent='カメラを停止しました。';
+    sb.disabled=false;
+    tb.disabled=true;
+  }).catch(err=>{
+    st.textContent='カメラ停止時にエラーが発生しました: '+err;
+  });
+}
+
+function onScanSuccess(txt){
+  const id=extractId(txt);
+  const now=Date.now();
+
+  if(!id)return;
+  if(processing)return;
+  if(id===lastId&&now-lastTime<3500)return;
+
+  lastId=id;
+  lastTime=now;
+  processing=true;
+
+  document.getElementById('scan-status').textContent='Processing: '+id;
+
+  gasGet({api:'checkin',id}).then(d=>{
+    renderResult(d,id);
+    if(d.summary)renderSummary(d.summary);
+
+    setTimeout(()=>{
+      processing=false;
+      if(cameraRunning)document.getElementById('scan-status').textContent='Ready for next scan.';
+    },900);
+  }).catch(e=>{
+    renderError(e.message||String(e));
+    processing=false;
+  });
+}
+
+async function loadSummary(){
+  try{
+    const d=await gasGet({api:'summary'});
+    if(d.ok)renderSummary(d.summary);
+    else renderError(d.error||'Summary API error.');
+  }catch(e){
+    renderError(e.message||String(e));
+  }
+}
+
+async function gasGet(params){
+  const u=new URL(GAS_URL);
+  Object.keys(params).forEach(k=>u.searchParams.set(k,params[k]));
+  u.searchParams.set('t',Date.now());
+
+  const r=await fetch(u.toString(),{method:'GET',cache:'no-store'});
+  if(!r.ok)throw new Error('GAS response error: '+r.status);
+  return await r.json();
+}
+
+function renderResult(d,id){
+  const t=document.getElementById('result-title');
+  const c=document.getElementById('latest-card');
+
+  if(!d||!d.ok){
+    t.textContent='Error';
+    c.className='latest error-card';
+    c.innerHTML='<b>'+esc((d&&d.error)||'Error')+'</b><br>ID: '+esc(id);
+    return;
+  }
+
+  const p=d.participant||{};
+  t.textContent=d.status||'Checked in.';
+  c.className=d.status==='Already checked in.'?'latest warning-card':'latest success-card';
+
+  c.innerHTML=
+    '<div class="latest-name">'+esc(p.Name)+'</div>'+
+    '<div>'+esc(p.School)+'</div>'+
+    '<div class="latest-grid">'+
+      '<span>Region: <b>'+esc(p.Region)+'</b></span>'+
+      '<span>Oral: <b>'+esc(p.OralNo)+'</b></span>'+
+      '<span>Poster: <b>'+esc(p.PosterNo)+'</b></span>'+
+      '<span>IJP1: <b>'+esc(p.IJP1)+'</b></span>'+
+      '<span>IJP2: <b>'+esc(p.IJP2)+'</b></span>'+
+    '</div>';
+}
+
+function renderSummary(s){
+  if(!s)return;
+
+  document.getElementById('total-count').textContent=s.total||0;
+  document.getElementById('present-count').textContent=s.present||0;
+  document.getElementById('absent-count').textContent=s.absent||0;
+
+  const list=document.getElementById('absent-list');
+  list.innerHTML='';
+
+  (s.absentList||[]).forEach(p=>{
+    const d=document.createElement('div');
+    d.className='item';
+    d.innerHTML=
+      '<b>'+esc(p.Name)+'</b>'+
+      '<span>'+esc(p.School)+'</span>'+
+      '<span>Oral: '+esc(p.OralNo||'-')+
+      ' / Poster: '+esc(p.PosterNo||'-')+
+      ' / IJP1: '+esc(p.IJP1||'-')+
+      ' / IJP2: '+esc(p.IJP2||'-')+
+      '</span>';
+    list.appendChild(d);
+  });
+}
+
+function renderError(msg){
+  document.getElementById('result-title').textContent='Error';
+  const c=document.getElementById('latest-card');
+  c.className='latest error-card';
+  c.textContent=msg;
+}
+
+function esc(v){
+  return String(v||'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+function js(v){
+  return String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+window.addEventListener('load',()=>{
+  init();
+  setInterval(()=>{
+    if(document.getElementById('staff-view').classList.contains('active'))loadSummary();
+  },15000);
+});
 </script>
 </body>
 </html>
