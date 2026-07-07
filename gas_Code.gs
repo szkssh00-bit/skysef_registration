@@ -1,0 +1,117 @@
+const SPREADSHEET_ID='1Mjpp9pPqrXxF9dAoGkIH415PlvNMoXyZ2i6rQCkitoQ';
+const MASTER_SHEET_NAME='Master';
+const CORRECTION_SHEET_NAME='Corrections';
+const TIMEZONE='Asia/Tokyo';
+const HEADERS={id:'ID',region:'Region',school:'School',name:'Name',oral:'Oral No.',poster:'Poster No.',ijp1:'IJP1 Group',ijp2:'IJP2 Group',attendance:'Attendance',attendedAt:'Attended At',correctionStatus:'Correction Status'};
+
+function doGet(e){
+  try{
+    const p=(e&&e.parameter)||{};
+    const api=String(p.api||'').trim();
+    if(api==='participant')return json_({ok:true,participant:getParticipant(p.id)});
+    if(api==='summary')return json_({ok:true,summary:getAttendanceSummary()});
+    if(api==='checkin')return json_(checkIn(p.id));
+    if(api==='correction')return json_(submitCorrection(p.id,p.correctedName,p.note));
+    return json_({ok:true,message:'SKYSEF GAS backend is running.'});
+  }catch(err){return json_({ok:false,error:String(err&&err.message?err.message:err)});}
+}
+
+function doPost(e){
+  try{
+    const b=JSON.parse((e&&e.postData&&e.postData.contents)||'{}');
+    const api=String(b.api||'').trim();
+    if(api==='participant')return json_({ok:true,participant:getParticipant(b.id)});
+    if(api==='summary')return json_({ok:true,summary:getAttendanceSummary()});
+    if(api==='checkin')return json_(checkIn(b.id));
+    if(api==='correction')return json_(submitCorrection(b.id,b.correctedName,b.note));
+    return json_({ok:false,error:'Unknown API.'});
+  }catch(err){return json_({ok:false,error:String(err&&err.message?err.message:err)});}
+}
+
+function getMasterSheet_(){
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sh=ss.getSheetByName(MASTER_SHEET_NAME);
+  if(!sh)sh=ss.insertSheet(MASTER_SHEET_NAME);
+  setupMasterSheet_(sh);
+  return sh;
+}
+
+function setupMasterSheet_(sh){
+  const req=[HEADERS.id,HEADERS.region,HEADERS.school,HEADERS.name,HEADERS.oral,HEADERS.poster,HEADERS.ijp1,HEADERS.ijp2,HEADERS.attendance,HEADERS.attendedAt,HEADERS.correctionStatus];
+  const cur=sh.getRange(1,1,1,Math.max(sh.getLastColumn(),1)).getValues()[0].map(h=>String(h||'').trim());
+  let headers=cur.filter(h=>h!=='');
+  if(headers.length===0)headers=req.slice();else req.forEach(h=>{if(!headers.includes(h))headers.push(h);});
+  sh.getRange(1,1,1,headers.length).setValues([headers]);
+  sh.setFrozenRows(1);
+  sh.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#0b1f3a').setFontColor('#ffffff');
+  SpreadsheetApp.flush();
+}
+
+function setupCorrectionSheet_(sh){
+  const headers=['Timestamp','ID','Current Name','Corrected Name','School','Region','Note','Status'];
+  const cur=sh.getRange(1,1,1,Math.max(sh.getLastColumn(),1)).getValues()[0].map(h=>String(h||'').trim());
+  if(cur.filter(h=>h!=='').length===0)sh.getRange(1,1,1,headers.length).setValues([headers]);
+  sh.setFrozenRows(1);
+  sh.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#0b1f3a').setFontColor('#ffffff');
+  SpreadsheetApp.flush();
+}
+
+function getIndex_(headers){
+  const map={};headers.forEach((h,i)=>{const k=String(h||'').trim();if(k)map[k]=i;});
+  const missing=Object.values(HEADERS).filter(h=>map[h]===undefined);
+  if(missing.length>0)throw new Error('Missing header: '+missing.join(', '));
+  return {id:map[HEADERS.id],region:map[HEADERS.region],school:map[HEADERS.school],name:map[HEADERS.name],oral:map[HEADERS.oral],poster:map[HEADERS.poster],ijp1:map[HEADERS.ijp1],ijp2:map[HEADERS.ijp2],attendance:map[HEADERS.attendance],attendedAt:map[HEADERS.attendedAt],correctionStatus:map[HEADERS.correctionStatus]};
+}
+
+function getParticipant(id){
+  id=norm_(id);if(!id)return null;
+  const sh=getMasterSheet_();const v=sh.getDataRange().getValues();if(v.length<2)return null;
+  const idx=getIndex_(v[0]);const rn=findRow_(v,idx,id);if(!rn)return null;
+  return rowToParticipant_(v[rn-1],idx);
+}
+
+function checkIn(id){
+  id=norm_(id);if(!id)return {ok:false,error:'ID is missing.'};
+  const sh=getMasterSheet_();const v=sh.getDataRange().getValues();if(v.length<2)return {ok:false,error:'No participant data exists.'};
+  const idx=getIndex_(v[0]);const rn=findRow_(v,idx,id);if(!rn)return {ok:false,error:'ID was not found.',id};
+  const row=v[rn-1];const current=String(row[idx.attendance]||'').trim();
+  const already=current==='受付済み'||current==='出席'||current==='Present';
+  if(!already){
+    const now=Utilities.formatDate(new Date(),TIMEZONE,'yyyy-MM-dd HH:mm:ss');
+    sh.getRange(rn,idx.attendance+1).setValue('受付済み');
+    sh.getRange(rn,idx.attendedAt+1).setValue(now);
+    SpreadsheetApp.flush();
+  }
+  return {ok:true,status:already?'Already checked in.':'Checked in.',participant:getParticipant(id),summary:getAttendanceSummary()};
+}
+
+function getAttendanceSummary(){
+  const sh=getMasterSheet_();const v=sh.getDataRange().getValues();
+  if(v.length<2)return {total:0,present:0,absent:0,absentList:[]};
+  const idx=getIndex_(v[0]);let total=0,present=0;const absentList=[];
+  for(let r=1;r<v.length;r++){
+    const row=v[r];const id=norm_(row[idx.id]);if(!id)continue;
+    total++;const p=rowToParticipant_(row,idx);const st=String(p.Attendance||'').trim();
+    if(st==='受付済み'||st==='出席'||st==='Present')present++;else absentList.push(p);
+  }
+  return {total,present,absent:total-present,absentList};
+}
+
+function submitCorrection(id,correctedName,note){
+  id=norm_(id);correctedName=String(correctedName||'').trim();note=String(note||'').trim();
+  if(!id)return {ok:false,error:'ID is missing.'};
+  if(!correctedName)return {ok:false,error:'Corrected name is required.'};
+  const p=getParticipant(id);if(!p)return {ok:false,error:'ID was not found.'};
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);let sh=ss.getSheetByName(CORRECTION_SHEET_NAME);
+  if(!sh)sh=ss.insertSheet(CORRECTION_SHEET_NAME);
+  setupCorrectionSheet_(sh);
+  sh.appendRow([Utilities.formatDate(new Date(),TIMEZONE,'yyyy-MM-dd HH:mm:ss'),id,p.Name,correctedName,p.School,p.Region,note,'Pending']);
+  markCorrectionPending_(id);
+  return {ok:true,message:'Correction request has been submitted.'};
+}
+
+function findRow_(v,idx,id){const target=norm_(id);for(let r=1;r<v.length;r++){if(norm_(v[r][idx.id])===target)return r+1;}return null;}
+function rowToParticipant_(row,idx){return {ID:row[idx.id]||'',Region:row[idx.region]||'',School:row[idx.school]||'',Name:row[idx.name]||'',OralNo:row[idx.oral]||'',PosterNo:row[idx.poster]||'',IJP1:row[idx.ijp1]||'',IJP2:row[idx.ijp2]||'',Attendance:row[idx.attendance]||'',AttendedAt:row[idx.attendedAt]||'',CorrectionStatus:row[idx.correctionStatus]||''};}
+function markCorrectionPending_(id){const sh=getMasterSheet_();const v=sh.getDataRange().getValues();if(v.length<2)return;const idx=getIndex_(v[0]);const rn=findRow_(v,idx,id);if(rn){sh.getRange(rn,idx.correctionStatus+1).setValue('Pending');SpreadsheetApp.flush();}}
+function norm_(v){return String(v||'').trim();}
+function json_(obj){return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);}
