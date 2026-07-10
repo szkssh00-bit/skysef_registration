@@ -3,439 +3,112 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SKYSEF 2026 QR</title>
+<title>SKYSEF Check in System</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;background:#f6f8fb;color:#172033;line-height:1.7}
-.container{width:min(1320px,calc(100% - 32px));margin:auto}
-.section{padding:28px 0 40px}
-.grid{display:grid;grid-template-columns:minmax(320px,1fr) minmax(380px,1.15fr) minmax(300px,.9fr);gap:18px;align-items:start}
-.card{background:#fff;border:1px solid #d9e2ec;border-radius:20px;box-shadow:0 14px 34px rgba(12,31,58,.10);padding:26px;min-width:0}
-.eyebrow{color:#00a6d6;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}
-h1,h2{color:#0b1f3a;line-height:1.2;margin:8px 0 18px}
-h1{font-size:2rem} h2{font-size:1.45rem}
-.camera-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.camera-row label{font-weight:900;color:#0b1f3a;white-space:nowrap}
-.camera-row select{width:100%;border:1px solid #b8c7d7;border-radius:10px;padding:10px 12px;background:#fff}
-.qr-wrap{position:relative;width:100%;background:#071426;border-radius:16px;overflow:hidden}
-#reader{width:100%;min-height:420px;background:#071426}
-.scan-guide{position:absolute;left:50%;top:50%;width:74%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #00e0ff;border-radius:14px;pointer-events:none}
-.note{margin-top:10px;color:#5f6f82;font-size:.9rem;white-space:pre-wrap}
-.latest{border-radius:16px;padding:20px;border:1px solid #d9e2ec;background:#f8fbfe}
-.latest-name{font-size:2rem;font-weight:900;color:#0b1f3a}
-.latest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.success-card{background:#effaf1}.warning-card{background:#fff7e8}.error-card{background:#fff0f0;color:#b3261e}
-.flash{animation:flashGreen .9s ease}
-@keyframes flashGreen{0%{background:#00ff55}35%{background:#00ff55}100%{background:#f6f8fb}}
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}
-.stat{background:#f8fbfe;border:1px solid #d9e2ec;border-radius:12px;padding:10px}
-.stat b{display:block;font-size:1.45rem;color:#0b1f3a}
-.stat span{font-size:.82rem;color:#5f6f82;font-weight:800}
-.table-wrap{overflow:auto;max-height:360px;border:1px solid #d9e2ec;border-radius:12px}
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{padding:10px 12px;border-bottom:1px solid #d9e2ec;text-align:left;white-space:nowrap}
-th{background:#0b1f3a;color:#fff}
-.attendance-table th,.attendance-table td{text-align:center}
-.att-ok{color:#137333;font-weight:900}.att-ng{color:#9aa4b2;font-weight:900}
-.list{display:grid;gap:8px;max-height:760px;overflow:auto}
-.item{border:1px solid #d9e2ec;border-radius:12px;padding:12px;background:#f8fbfe;display:grid;gap:2px}
-.error{color:#d93025;font-weight:800}
-@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.absent-card{grid-column:1/-1}}
-@media(max-width:760px){.grid{grid-template-columns:1fr}.absent-card{grid-column:auto}#reader{min-height:340px}.latest-grid,.stats{grid-template-columns:1fr 1fr}}
+html,body{width:100%;height:100%}
+body{font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;background:#f3f6fa;color:#172033;line-height:1.55}
+main{height:100vh;padding:8px}
+.layout{display:grid;grid-template-columns:1.02fr 1.08fr .9fr;gap:8px;height:calc(100vh - 16px)}
+.card{background:#fff;border:1px solid #d7e0ea;border-radius:12px;box-shadow:0 6px 18px rgba(12,31,58,.08);padding:14px;min-width:0;overflow:auto}
+.title-black{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a;line-height:1.05}
+h1.title-black{font-size:clamp(1.8rem,2.5vw,3.1rem);margin-bottom:10px}
+h2.title-black{font-size:clamp(1.35rem,1.8vw,2rem);margin-bottom:10px}
+.subhead{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a;font-size:1rem;margin:10px 0 8px}
+.controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
+.control-row{display:flex;align-items:center;gap:8px}
+.control-row label{font-weight:900;white-space:nowrap}
+select{width:100%;border:1px solid #afbecd;border-radius:9px;padding:9px 10px;background:#fff;font-weight:700}
+.qr-wrap{position:relative;width:100%;height:calc(100vh - 170px);min-height:360px;background:#071426;border-radius:10px;overflow:hidden}
+#reader{width:100%;height:100%;background:#071426}
+.scan-guide{position:absolute;left:50%;top:50%;width:76%;max-height:88%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #00e0ff;border-radius:12px;pointer-events:none}
+.status{margin-top:8px;padding:8px 10px;border-radius:9px;background:#eef5fb;color:#35516c;font-size:.9rem;font-weight:700;white-space:pre-wrap}
+.status.local{background:#e7f4ff;color:#0b5ea8}.status.syncing{background:#fff3dc;color:#8a5200}.status.done{background:#e7f7ec;color:#137333}.status.error{background:#fff0f0;color:#b3261e}
+.latest{border:1px solid #d7e0ea;border-radius:10px;padding:12px;background:#f8fbfe;min-height:112px}
+.latest.success{background:#eaf8ee;border-color:#b8dec1}.latest.warning{background:#fff6df;border-color:#f0d494}.latest.error{background:#fff0f0;border-color:#efb5b5}
+.latest-name{font-family:"Arial Black",Arial,sans-serif;font-size:1.7rem;color:#0b1f3a}
+.latest-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:6px;font-size:.9rem}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.metric{border:1px solid #d7e0ea;border-radius:9px;background:#f8fbfe;padding:8px}
+.metric b{display:block;font-family:"Arial Black",Arial,sans-serif;font-size:1.35rem;color:#0b1f3a}
+.metric span{font-size:.75rem;color:#5f6f82;font-weight:800}
+.list{display:grid;gap:6px;overflow:auto}.attendance-list{max-height:calc(100vh - 350px)}.absent-list{max-height:calc(100vh - 92px)}
+.item{border:1px solid #d7e0ea;border-radius:9px;padding:9px 10px;background:#f8fbfe;display:grid;gap:1px}
+.item strong{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a}.item small{color:#5f6f82}
+.flash{animation:flashGreen .85s ease}@keyframes flashGreen{0%{background:#00ff4c}35%{background:#00ff4c}100%{background:#f3f6fa}}
+@media(max-width:1100px){body{height:auto}main{height:auto}.layout{grid-template-columns:1fr 1fr;height:auto}.card{overflow:visible}.absent-card{grid-column:1/-1}.qr-wrap{height:520px}.attendance-list,.absent-list{max-height:420px}}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.absent-card{grid-column:auto}.qr-wrap{height:420px}}
 </style>
-<style>
-html,body{width:100%;min-height:100%;overflow-x:hidden}body{margin:0}.section{padding:8px!important;min-height:100vh}.container{width:100%!important;max-width:none!important;margin:0!important}.grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr) minmax(0,.9fr)!important;gap:8px!important;min-height:calc(100vh - 16px)!important}.card{padding:14px!important;border-radius:12px!important;min-height:calc(100vh - 16px)!important;height:calc(100vh - 16px)!important;overflow:auto!important}.qr-wrap{max-width:none!important}.table-wrap{max-height:calc(100vh - 390px)!important}.list{max-height:calc(100vh - 100px)!important}.sync-badge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:.8rem;font-weight:800;margin-top:8px}.sync-local{background:#e8f4ff;color:#0b5ea8}.sync-syncing{background:#fff4df;color:#9a5a00}.sync-done{background:#e9f8ed;color:#137333}.sync-error{background:#fff0f0;color:#b3261e}@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr!important}.absent-card{grid-column:1/-1}.card{height:auto!important;min-height:auto!important}}@media(max-width:760px){.grid{grid-template-columns:1fr!important}.absent-card{grid-column:auto}}
-</style></head>
+</head>
 <body>
-<main class="section">
-<div class="container">
-<div class="grid">
-
+<main>
+<div class="layout">
 <section class="card camera-card">
-  <div class="eyebrow">Camera</div>
-  <h1>QR Check-in</h1>
-  <div class="camera-row">
-    <label for="camera-select">Camera</label>
-    <select id="camera-select" onchange="changeCamera()">
-      <option value="">Loading...</option>
-    </select>
+  <h1 class="title-black">SKYSEF Check in System</h1>
+  <div class="controls">
+    <div class="control-row"><label for="event-date">Date</label><select id="event-date"><option value="8/2">August 2</option><option value="8/3">August 3</option><option value="8/4">August 4</option><option value="8/5">August 5</option></select></div>
+    <div class="control-row"><label for="camera-select">Camera</label><select id="camera-select"><option value="">Loading cameras...</option></select></div>
   </div>
-  <div class="qr-wrap">
-    <div id="reader"></div>
-    <div class="scan-guide"></div>
-  </div>
-  <p id="scan-status" class="note">カメラを準備しています。</p>
+  <div class="qr-wrap"><div id="reader"></div><div class="scan-guide"></div></div>
+  <div id="scan-status" class="status">Preparing camera and participant list...</div>
 </section>
-
 <section class="card checkin-card">
-  <div class="eyebrow">Check-in Information</div>
-  <h2 id="result-title">Waiting</h2>
-  <div id="latest-card" class="latest">Please scan a name tag QR code.</div><div id="sync-status" class="sync-badge sync-syncing">Loading master list...</div>
-
-  <div class="stats">
-    <div class="stat"><b id="total-count">0</b><span>Total</span></div>
-    <div class="stat"><b id="d0802-count">0</b><span>8/2</span></div>
-    <div class="stat"><b id="d0803-count">0</b><span>8/3</span></div>
-    <div class="stat"><b id="d0804-count">0</b><span>8/4</span></div>
-    <div class="stat"><b id="d0805-count">0</b><span>8/5</span></div>
-  </div>
-
-  <h2>Attendance by Date</h2>
-  <div id="attendance-table-box" class="table-wrap"></div>
+  <h2 class="title-black">Check-in Information</h2>
+  <div id="latest-card" class="latest">Scan a participant QR code.</div>
+  <div class="metrics"><div class="metric"><b id="planned-count">0</b><span>Planned</span></div><div class="metric"><b id="checked-count">0</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
+  <div id="sync-status" class="status done">Master list not loaded</div>
+  <div class="subhead">Attendance List</div>
+  <div id="attendance-list" class="list attendance-list"></div>
 </section>
-
 <section class="card absent-card">
-  <div class="eyebrow">Attendance</div>
-  <h2>Not Checked-in Today</h2>
-  <div id="absent-list" class="list"></div>
+  <h2 class="title-black">Not Checked-in Today</h2>
+  <div id="absent-list" class="list absent-list"></div>
 </section>
-
-</div>
 </div>
 </main>
-
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbydloYJgKIlJ-4_xQV4GSbdsAYVvvtUjMffZ7DpulnuzYYNzwLYJwrObeZ8tGKsBd1I/exec';
-
-let qr=null;
-let cameraRunning=false;
-let cameras=[];
-let selectedCameraId="";
-let processing=false;
-let lastId="";
-let lastTime=0;
-let participantMap=new Map();
-let localSummary=null;
-let pendingSync=new Map();
-
-window.addEventListener("load",async function(){
-  await loadCameraList();
-  await preloadMasterList();
-  await startSelectedCamera();
-  setInterval(backgroundRefresh,30000);
-  window.addEventListener("online",flushPendingSync);
-});
-
-async function loadCameraList(){
-  const select=document.getElementById("camera-select");
-
-  try{
-    cameras=await Html5Qrcode.getCameras();
-    select.innerHTML="";
-
-    if(!cameras.length){
-      select.innerHTML='<option value="">No camera found</option>';
-      document.getElementById("scan-status").textContent="カメラが見つかりません。";
-      return;
-    }
-
-    cameras.forEach(function(camera,index){
-      const option=document.createElement("option");
-      option.value=camera.id;
-      option.textContent=(index+1)+": "+(camera.label||("Camera "+(index+1)));
-      select.appendChild(option);
-    });
-
-    const saved=localStorage.getItem("skysef_camera_id");
-
-    if(saved&&cameras.some(function(camera){return camera.id===saved;})){
-      select.value=saved;
-    }else if(cameras.length>1){
-      select.selectedIndex=1;
-    }else{
-      select.selectedIndex=0;
-    }
-
-    selectedCameraId=select.value;
-  }catch(error){
-    select.innerHTML='<option value="">Camera list error</option>';
-    document.getElementById("scan-status").textContent=
-      "カメラ一覧を取得できませんでした: "+(error.message||String(error));
-  }
-}
-
-async function changeCamera(){
-  const select=document.getElementById("camera-select");
-  selectedCameraId=select.value;
-
-  if(selectedCameraId){
-    localStorage.setItem("skysef_camera_id",selectedCameraId);
-  }
-
-  if(qr&&cameraRunning){
-    try{
-      await qr.stop();
-    }catch(error){}
-    cameraRunning=false;
-  }
-
-  await startSelectedCamera();
-}
-
-async function startSelectedCamera(){
-  const status=document.getElementById("scan-status");
-
-  if(!window.isSecureContext){
-    status.textContent="カメラはHTTPSまたはlocalhostでのみ使用できます。";
-    return;
-  }
-
-  if(!window.Html5Qrcode){
-    status.textContent="html5-qrcodeを読み込めません。";
-    return;
-  }
-
-  if(!selectedCameraId){
-    status.textContent="使用するカメラを選択してください。";
-    return;
-  }
-
-  status.textContent="カメラを起動しています...";
-
-  try{
-    if(!qr){
-      qr=new Html5Qrcode("reader",{verbose:false});
-    }
-
-    const config={
-      fps:30,
-      qrbox:function(width,height){
-        const size=Math.floor(Math.min(width,height)*0.74);
-        return {width:size,height:size};
-      },
-      aspectRatio:1.333,
-      rememberLastUsedCamera:true,
-      experimentalFeatures:{
-        useBarCodeDetectorIfSupported:true
-      },
-      videoConstraints:{
-        width:{ideal:640},
-        height:{ideal:480},
-        focusMode:"continuous",
-        exposureMode:"continuous",
-        whiteBalanceMode:"continuous"
-      }
-    };
-
-    await qr.start(
-      {deviceId:{exact:selectedCameraId}},
-      config,
-      onScanSuccess,
-      function(){}
-    );
-
-    cameraRunning=true;
-    status.textContent="カメラ起動中です。QRコードを枠内に入れてください。";
-  }catch(error){
-    cameraRunning=false;
-    status.textContent="カメラを起動できませんでした: "+(error.message||String(error));
-  }
-}
-
-function extractId(value){
-  try{
-    const url=new URL(value);
-    return url.searchParams.get("id")||"";
-  }catch(error){
-    const match=String(value||"").match(/[?&]id=([^&]+)/);
-    return match?decodeURIComponent(match[1]):String(value||"").trim();
-  }
-}
-
-function onScanSuccess(decodedText){
-  const id=extractId(decodedText);
-  if(id){
-    processCheckIn(id);
-  }
-}
-
-function processCheckIn(id){
-  const now=Date.now();
-  if(!id||processing)return;
-  if(id===lastId&&now-lastTime<1200)return;
-  lastId=id;lastTime=now;processing=true;
-  document.getElementById("scan-status").textContent="QR read succeeded: "+id+"\nDisplaying local check-in information...";
-  beep();document.body.classList.remove("flash");void document.body.offsetWidth;document.body.classList.add("flash");
-  const displayed=renderOptimisticResult(id);
-  if(displayed){document.getElementById("scan-status").textContent="Check-in displayed.\nSaving attendance record in the background...";syncCheckInInBackground(id);}
-  setTimeout(function(){processing=false;if(cameraRunning)document.getElementById("scan-status").textContent="Ready for next scan.";},700);
-}
-
-function beep(){
-  try{
-    const context=new (window.AudioContext||window.webkitAudioContext)();
-    const oscillator=context.createOscillator();
-    const gain=context.createGain();
-
-    oscillator.type="sine";
-    oscillator.frequency.value=1040;
-    gain.gain.value=.18;
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-
-    setTimeout(function(){
-      oscillator.frequency.value=1320;
-    },120);
-
-    setTimeout(function(){
-      oscillator.stop();
-      context.close();
-    },320);
-  }catch(error){}
-}
-
-function setSyncStatus(type,text){const el=document.getElementById("sync-status");if(!el)return;el.className="sync-badge sync-"+type;el.textContent=text;}
-function hydrateLocalData(summary){localSummary=summary||{total:0,counts:{D0802:0,D0803:0,D0804:0,D0805:0},allList:[],absentTodayList:[]};participantMap=new Map();(localSummary.allList||[]).forEach(p=>participantMap.set(String(p.ID||"").trim(),p));}
-async function preloadMasterList(){setSyncStatus("syncing","Loading master list...");try{const data=await gasGet({api:"summary"});if(!data.ok)throw new Error(data.error||"Summary API error.");hydrateLocalData(data.summary);renderSummary(localSummary);setSyncStatus("done","Master list ready");await flushPendingSync();}catch(e){setSyncStatus("error","Master list load failed");renderError(e.message||String(e));}}
-function getTodayProperty(){const md=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(new Date());return md==="8/3"?"D0803At":md==="8/4"?"D0804At":md==="8/5"?"D0805At":"D0802At";}
-function getTodayCountKey(){return {D0802At:"D0802",D0803At:"D0803",D0804At:"D0804",D0805At:"D0805"}[getTodayProperty()];}
-function optimisticCheckIn(id){const p=participantMap.get(String(id||"").trim());if(!p)return null;const prop=getTodayProperty(),already=Boolean(p[prop]);const stamp=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace(/\//g,"-");if(!already){p[prop]=stamp;p.AttendedAt=stamp;if(localSummary&&localSummary.counts){const key=getTodayCountKey();localSummary.counts[key]=(localSummary.counts[key]||0)+1;}if(localSummary)localSummary.absentTodayList=(localSummary.absentTodayList||[]).filter(x=>String(x.ID||"").trim()!==String(id||"").trim());}return {person:p,already};}
-function renderOptimisticResult(id){const r=optimisticCheckIn(id);if(!r){renderError("ID was not found in the locally loaded master list.");return false;}const p=r.person,t=document.getElementById("result-title"),c=document.getElementById("latest-card");t.textContent=r.already?"Already checked in.":"Checked in.";c.className=r.already?"latest warning-card":"latest success-card";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>Region: <b>'+escapeHtml(p.Region)+'</b></span><span>Oral: <b>'+escapeHtml(p.OralNo)+'</b></span><span>Poster: <b>'+escapeHtml(p.PosterNo)+'</b></span><span>IJP1: <b>'+escapeHtml(p.IJP1)+'</b></span><span>IJP2: <b>'+escapeHtml(p.IJP2)+'</b></span></div>'+attendanceTable([p]);renderSummary(localSummary);setSyncStatus("local","Displayed locally");return true;}
-function loadPending(){try{pendingSync=new Map(JSON.parse(localStorage.getItem("skysef_pending_sync")||"[]"));}catch(e){pendingSync=new Map();}}
-function savePending(id){pendingSync.set(id,Date.now());localStorage.setItem("skysef_pending_sync",JSON.stringify(Array.from(pendingSync.entries())));}
-async function syncCheckInInBackground(id){savePending(id);setSyncStatus("syncing","Saving to GAS...");try{const data=await gasGet({api:"checkin",id});if(!data.ok)throw new Error(data.error||"Check-in failed.");pendingSync.delete(id);localStorage.setItem("skysef_pending_sync",JSON.stringify(Array.from(pendingSync.entries())));if(data.summary){hydrateLocalData(data.summary);renderSummary(localSummary);}renderResult(data,id);setSyncStatus("done","Saved to GAS");}catch(e){setSyncStatus("error","Displayed / GAS retry pending");}}
-async function flushPendingSync(){loadPending();if(!navigator.onLine||pendingSync.size===0)return;for(const id of Array.from(pendingSync.keys()))await syncCheckInInBackground(id);}
-async function backgroundRefresh(){if(pendingSync.size>0){await flushPendingSync();return;}try{const data=await gasGet({api:"summary"});if(data.ok){hydrateLocalData(data.summary);renderSummary(localSummary);setSyncStatus("done","Synchronized");}}catch(e){}}
-async function loadSummary(){return preloadMasterList();}
-
-async function gasGet(params){
-  const url=new URL(GAS_URL);
-
-  Object.keys(params).forEach(function(key){
-    url.searchParams.set(key,params[key]);
-  });
-
-  url.searchParams.set("t",Date.now());
-
-  const response=await fetch(url.toString(),{
-    method:"GET",
-    cache:"no-store"
-  });
-
-  if(!response.ok){
-    throw new Error("GAS response error: "+response.status);
-  }
-
-  return await response.json();
-}
-
-function renderResult(data,id){
-  const title=document.getElementById("result-title");
-  const card=document.getElementById("latest-card");
-
-  if(!data||!data.ok){
-    title.textContent="Error";
-    card.className="latest error-card";
-    card.innerHTML="<b>"+escapeHtml((data&&data.error)||"Error")+"</b><br>ID: "+escapeHtml(id);
-    return;
-  }
-
-  const person=data.participant||{};
-
-  title.textContent=data.status||"Checked in.";
-  card.className=
-    data.status==="Already checked in."
-      ?"latest warning-card"
-      :"latest success-card";
-
-  card.innerHTML=
-    '<div class="latest-name">'+escapeHtml(person.Name)+'</div>'+
-    '<div>'+escapeHtml(person.School)+'</div>'+
-    '<div class="latest-grid">'+
-      '<span>Region: <b>'+escapeHtml(person.Region)+'</b></span>'+
-      '<span>Oral: <b>'+escapeHtml(person.OralNo)+'</b></span>'+
-      '<span>Poster: <b>'+escapeHtml(person.PosterNo)+'</b></span>'+
-      '<span>IJP1: <b>'+escapeHtml(person.IJP1)+'</b></span>'+
-      '<span>IJP2: <b>'+escapeHtml(person.IJP2)+'</b></span>'+
-    '</div>'+
-    attendanceTable([person]);
-}
-
-function renderSummary(summary){
-  if(!summary){
-    return;
-  }
-
-  document.getElementById("total-count").textContent=summary.total||0;
-  document.getElementById("d0802-count").textContent=
-    summary.counts&&summary.counts.D0802||0;
-  document.getElementById("d0803-count").textContent=
-    summary.counts&&summary.counts.D0803||0;
-  document.getElementById("d0804-count").textContent=
-    summary.counts&&summary.counts.D0804||0;
-  document.getElementById("d0805-count").textContent=
-    summary.counts&&summary.counts.D0805||0;
-
-  document.getElementById("attendance-table-box").innerHTML=
-    attendanceTable(summary.allList||[]);
-
-  const list=document.getElementById("absent-list");
-  list.innerHTML="";
-
-  (summary.absentTodayList||[]).forEach(function(person){
-    const item=document.createElement("div");
-    item.className="item";
-    item.innerHTML=
-      "<b>"+escapeHtml(person.Name)+"</b>"+
-      "<span>"+escapeHtml(person.School)+"</span>"+
-      "<span>ID: "+escapeHtml(person.ID)+"</span>";
-
-    list.appendChild(item);
-  });
-}
-
-function attendanceTable(list){
-  let html=
-    '<table class="attendance-table">'+
-    '<tr><th>ID</th><th>Name</th><th>8/2</th><th>8/3</th><th>8/4</th><th>8/5</th></tr>';
-
-  (list||[]).forEach(function(person){
-    html+=
-      '<tr>'+
-      '<td>'+escapeHtml(person.ID)+'</td>'+
-      '<td>'+escapeHtml(person.Name)+'</td>'+
-      attendanceCell(person.D0802At)+
-      attendanceCell(person.D0803At)+
-      attendanceCell(person.D0804At)+
-      attendanceCell(person.D0805At)+
-      '</tr>';
-  });
-
-  return html+"</table>";
-}
-
-function attendanceCell(value){
-  if(value){
-    return '<td><span class="att-ok">済</span><br><small>'+
-      escapeHtml(value)+
-      '</small></td>';
-  }
-
-  return '<td><span class="att-ng">未</span></td>';
-}
-
-function renderError(message){
-  document.getElementById("result-title").textContent="Error";
-
-  const card=document.getElementById("latest-card");
-  card.className="latest error-card";
-  card.textContent=message;
-}
-
-function escapeHtml(value){
-  return String(value||"").replace(/[&<>"']/g,function(character){
-    return {
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#39;"
-    }[character];
-  });
-}
+const GAS_URL='https://script.google.com/macros/s/AKfycbzRCI855qATrUd6IICX8AXGapRT1xQj3uvXs-XXxQak6W1Bs57nPHIyJeV7yTX9oqgw/exec';
+const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
+let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null;
+window.addEventListener("load",async function(){selectedDate=detectInitialDate();document.getElementById("event-date").value=selectedDate;restoreQueue();bindEvents();await Promise.all([loadMasterList(),loadCameraList()]);await startSelectedCamera();scheduleFlush(1200);setInterval(backgroundRefresh,30000);window.addEventListener("online",function(){scheduleFlush(100);});});
+function bindEvents(){document.getElementById("event-date").addEventListener("change",function(e){selectedDate=e.target.value;renderSelectedDate();});document.getElementById("camera-select").addEventListener("change",async function(e){selectedCameraId=e.target.value;if(selectedCameraId)localStorage.setItem("skysef_camera_id",selectedCameraId);if(qr&&cameraRunning){try{await qr.stop();}catch(_){}cameraRunning=false;}await startSelectedCamera();});}
+function detectInitialDate(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(new Date());return DATE_CONFIG[p]?p:"8/2";}
+async function loadMasterList(){setSyncStatus("syncing","Loading participant list...");try{const d=await gasGet({api:"master"});if(!d.ok)throw new Error(d.error||"Master API error.");participants=d.participants||[];participantMap=new Map();participants.forEach(p=>participantMap.set(normalizeId(p.ID),p));applyQueuedItemsToLocalData();renderSelectedDate();setSyncStatus("done","Participant list ready");}catch(e){setSyncStatus("error","Participant list load failed: "+(e.message||String(e)));}}
+function applyQueuedItemsToLocalData(){syncQueue.forEach(e=>applyLocalAttendance(e.id,e.date,e.localTime));}
+function flagValue(p,date){return String(p[DATE_CONFIG[date].flag]??"").trim()==="1";}
+function attendanceValue(p,date){return p[DATE_CONFIG[date].attendance]||"";}
+function setAttendanceValue(p,date,v){p[DATE_CONFIG[date].attendance]=v;p["Attended At"]=v;}
+function plannedParticipants(date){return participants.filter(p=>flagValue(p,date));}
+function checkedParticipants(date){return plannedParticipants(date).filter(p=>Boolean(attendanceValue(p,date))).sort((a,b)=>String(attendanceValue(b,date)).localeCompare(String(attendanceValue(a,date))));}
+function absentParticipants(date){return plannedParticipants(date).filter(p=>!attendanceValue(p,date)).sort((a,b)=>String(a.Name||"").localeCompare(String(b.Name||"")));}
+function renderSelectedDate(){const planned=plannedParticipants(selectedDate),checked=checkedParticipants(selectedDate),absent=absentParticipants(selectedDate);document.getElementById("planned-count").textContent=planned.length;document.getElementById("checked-count").textContent=checked.length;document.getElementById("queue-count").textContent=syncQueue.length;renderAttendanceList(checked);renderAbsentList(absent);}
+function renderAttendanceList(list){const box=document.getElementById("attendance-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><small>No check-ins yet.</small></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.School)+"</span><small>ID: "+escapeHtml(p.ID)+" / "+escapeHtml(attendanceValue(p,selectedDate))+"</small>";box.appendChild(i);});}
+function renderAbsentList(list){const box=document.getElementById("absent-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><strong>All planned participants checked in.</strong></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.School)+"</span><small>ID: "+escapeHtml(p.ID)+"</small>";box.appendChild(i);});}
+async function loadCameraList(){const s=document.getElementById("camera-select");try{cameras=await Html5Qrcode.getCameras();s.innerHTML="";if(!cameras.length){s.innerHTML='<option value="">No camera found</option>';setScanStatus("error","No camera found.");return;}cameras.forEach((c,n)=>{const o=document.createElement("option");o.value=c.id;o.textContent=(n+1)+": "+(c.label||("Camera "+(n+1)));s.appendChild(o);});const saved=localStorage.getItem("skysef_camera_id");if(saved&&cameras.some(c=>c.id===saved))s.value=saved;else if(cameras.length>1)s.selectedIndex=1;else s.selectedIndex=0;selectedCameraId=s.value;}catch(e){s.innerHTML='<option value="">Camera error</option>';setScanStatus("error","Camera list error: "+(e.message||String(e)));}}
+async function startSelectedCamera(){if(!selectedCameraId)return;setScanStatus("syncing","Starting camera...");try{if(!qr)qr=new Html5Qrcode("reader",{verbose:false});const config={fps:30,qrbox:(w,h)=>{const size=Math.floor(Math.min(w,h)*0.76);return{width:size,height:size};},aspectRatio:1.333,rememberLastUsedCamera:true,experimentalFeatures:{useBarCodeDetectorIfSupported:true},videoConstraints:{width:{ideal:640},height:{ideal:480},focusMode:"continuous",exposureMode:"continuous",whiteBalanceMode:"continuous"}};await qr.start({deviceId:{exact:selectedCameraId}},config,onScanSuccess,function(){});cameraRunning=true;setScanStatus("done","Camera ready. Scan the next QR code.");}catch(e){cameraRunning=false;setScanStatus("error","Camera start failed: "+(e.message||String(e)));}}
+function onScanSuccess(t){const id=extractId(t);if(id)processLocalCheckIn(id);}
+function processLocalCheckIn(id){const now=Date.now(),n=normalizeId(id);if(!n||processing)return;if(n===lastId&&now-lastTime<900)return;lastId=n;lastTime=now;processing=true;const p=participantMap.get(n);if(!p){showLatestError("ID not found",n);setScanStatus("error","QR read succeeded, but the ID is not in the local participant list.");processing=false;return;}if(!flagValue(p,selectedDate)){showLatestError("Not scheduled for "+selectedDate,n,p);setScanStatus("error","This participant is not scheduled for the selected date.");processing=false;return;}const existing=attendanceValue(p,selectedDate);if(existing){showLatest(p,true);setScanStatus("done","Already checked in. Ready for next scan.");processing=false;return;}const localTime=createLocalTimestamp();setAttendanceValue(p,selectedDate,localTime);addQueueEntry({id:n,date:selectedDate,localTime});showLatest(p,false);renderSelectedDate();strongFeedback();setScanStatus("local","Check-in complete on this screen.
+Attendance data will be sent to GAS in a background batch.");scheduleFlush(1800);setTimeout(function(){processing=false;setScanStatus("done","Ready for next scan.");},450);}
+function showLatest(p,already){const c=document.getElementById("latest-card");c.className=already?"latest warning":"latest success";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>ID: <b>'+escapeHtml(p.ID)+'</b></span><span>Date: <b>'+escapeHtml(selectedDate)+'</b></span><span>Oral: <b>'+escapeHtml(p["Oral No."]||"")+'</b></span><span>Poster: <b>'+escapeHtml(p["Poster No."]||"")+'</b></span><span>IJP1: <b>'+escapeHtml(p["IJP1 Group"]||"")+'</b></span><span>IJP2: <b>'+escapeHtml(p["IJP2 Group"]||"")+'</b></span></div><div class="status '+(already?"syncing":"done")+'">'+(already?"Already checked in.":"Check-in completed.")+'</div>';}
+function showLatestError(m,id,p){const c=document.getElementById("latest-card");c.className="latest error";c.innerHTML='<div class="latest-name">'+escapeHtml(m)+'</div>'+(p?'<div>'+escapeHtml(p.Name)+' / '+escapeHtml(p.School)+'</div>':'')+'<small>ID: '+escapeHtml(id)+'</small>';}
+function addQueueEntry(e){const dup=syncQueue.some(i=>i.id===e.id&&i.date===e.date);if(!dup){syncQueue.push(e);persistQueue();}document.getElementById("queue-count").textContent=syncQueue.length;}
+function scheduleFlush(delay){if(flushTimer)clearTimeout(flushTimer);flushTimer=setTimeout(flushQueue,delay);}
+async function flushQueue(){if(syncInFlight||!navigator.onLine||syncQueue.length===0)return;syncInFlight=true;const batch=syncQueue.slice(0,25);setSyncStatus("syncing","Sending "+batch.length+" queued check-in(s) to GAS...");try{const d=await gasPost({api:"batchCheckin",entries:batch});if(!d.ok)throw new Error(d.error||"Batch check-in failed.");const keys=new Set(batch.map(i=>i.id+"|"+i.date));syncQueue=syncQueue.filter(i=>!keys.has(i.id+"|"+i.date));persistQueue();if(d.updatedParticipants){d.updatedParticipants.forEach(u=>{const l=participantMap.get(normalizeId(u.ID));if(l)Object.assign(l,u);});}renderSelectedDate();setSyncStatus("done","GAS synchronized. Remaining queue: "+syncQueue.length);}catch(e){setSyncStatus("error","Local check-in is retained. GAS synchronization will retry.");}finally{syncInFlight=false;if(syncQueue.length>0)scheduleFlush(2500);}}
+async function backgroundRefresh(){if(syncQueue.length>0){scheduleFlush(100);return;}try{const d=await gasGet({api:"master"});if(d.ok){participants=d.participants||[];participantMap=new Map();participants.forEach(p=>participantMap.set(normalizeId(p.ID),p));renderSelectedDate();setSyncStatus("done","Master list synchronized.");}}catch(_){} }
+function applyLocalAttendance(id,date,time){const p=participantMap.get(normalizeId(id));if(p)setAttendanceValue(p,date,time);}
+function restoreQueue(){try{syncQueue=JSON.parse(localStorage.getItem("skysef_batch_queue")||"[]");if(!Array.isArray(syncQueue))syncQueue=[];}catch(_){syncQueue=[];}}
+function persistQueue(){localStorage.setItem("skysef_batch_queue",JSON.stringify(syncQueue));document.getElementById("queue-count").textContent=syncQueue.length;}
+function createLocalTimestamp(){return new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace(/\//g,"-");}
+function strongFeedback(){beep();document.body.classList.remove("flash");void document.body.offsetWidth;document.body.classList.add("flash");}
+function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.type="square";o.frequency.value=980;g.gain.value=.22;o.connect(g);g.connect(c.destination);o.start();setTimeout(()=>o.frequency.value=1320,150);setTimeout(()=>{o.stop();c.close();},420);}catch(_){}}
+function extractId(v){try{return new URL(v).searchParams.get("id")||"";}catch(_){const m=String(v||"").match(/[?&]id=([^&]+)/);return m?decodeURIComponent(m[1]):String(v||"").trim();}}
+function normalizeId(v){return String(v||"").trim();}
+function setScanStatus(t,m){const e=document.getElementById("scan-status");e.className="status "+t;e.textContent=m;}
+function setSyncStatus(t,m){const e=document.getElementById("sync-status");e.className="status "+t;e.textContent=m;}
+async function gasGet(params){const u=new URL(GAS_URL);Object.keys(params).forEach(k=>u.searchParams.set(k,params[k]));u.searchParams.set("t",Date.now());const r=await fetch(u.toString(),{method:"GET",cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
+async function gasPost(payload){const r=await fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload),cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
+function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 </script>
 </body>
 </html>
