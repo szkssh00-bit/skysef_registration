@@ -1,32 +1,469 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SKYSEF 2026 QR</title><script src="https://unpkg.com/html5-qrcode"></script><style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;background:#f6f8fb;color:#172033;line-height:1.7}.container{width:min(1160px,calc(100% - 40px));margin:auto}.nav{position:fixed;inset:0 0 auto 0;z-index:10;background:#fff;border-bottom:1px solid #d9e2ec}.nav-inner{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}.brand{font-weight:900;color:#0b1f3a}button,.btn{border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;margin:4px;border:0}.nav button{border:1px solid #b8dff1;background:#ecfaff;color:#095a77}.primary{background:#0b1f3a;color:#fff}.secondary{background:#eef5fb;color:#0b1f3a;border:1px solid #c8d6e4}.section{padding:110px 0 60px}.card{background:#fff;border:1px solid #d9e2ec;border-radius:22px;box-shadow:0 16px 40px rgba(12,31,58,.12);padding:32px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.full{grid-column:1/-1}.eyebrow{color:#00a6d6;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.82rem}h1,h2{color:#0b1f3a;margin:10px 0 20px;line-height:1.15}h1{font-size:clamp(2rem,4vw,3.2rem)}.qr-wrap{position:relative;max-width:680px;background:#071426;border-radius:18px;margin-top:12px;overflow:hidden}#reader{width:100%;min-height:420px;background:#071426}.scan-frame{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1;transform:translate(-50%,-50%);border:4px solid #00e0ff;border-radius:18px;box-shadow:0 0 0 9999px rgba(0,0,0,.28);pointer-events:none}.scan-frame:after{content:"QRを枠内に入れてください";position:absolute;left:50%;bottom:-42px;transform:translateX(-50%);white-space:nowrap;color:#fff;background:rgba(0,0,0,.65);padding:4px 10px;border-radius:999px;font-weight:700;font-size:.85rem}.flash{animation:flashGreen .45s ease}@keyframes flashGreen{0%{background:#dff7e4}100%{background:#f6f8fb}}.note{margin-top:10px;color:#5f6f82;font-size:.9rem;white-space:pre-wrap}.error{color:#d93025;font-weight:800}.success{color:#137333;font-weight:800}.latest{border-radius:20px;padding:22px;border:1px solid #d9e2ec;background:#f8fbfe}.latest-name{font-size:2.2rem;font-weight:900;color:#0b1f3a}.latest-grid,.stats{display:grid;gap:12px}.latest-grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(5,1fr);margin-bottom:22px}.stat{background:#f8fbfe;border:1px solid #d9e2ec;border-radius:18px;padding:18px}.stat b{display:block;font-size:2rem;color:#0b1f3a}.success-card{background:#effaf1}.warning-card{background:#fff7e8}.error-card{background:#fff0f0;color:#b3261e}.view{display:none}.view.active{display:block}.list{display:grid;gap:10px;max-height:520px;overflow:auto}.item{border:1px solid #d9e2ec;border-radius:14px;padding:12px;background:#f8fbfe}.name-card{background:linear-gradient(135deg,#0b1f3a,#123d68);color:#fff;border-radius:24px;padding:28px;margin:22px 0}.label{color:#8de7ff;font-weight:900}.participant-name{font-size:clamp(2rem,7vw,4.2rem);font-weight:900}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:12px 14px;border-bottom:1px solid #d9e2ec;text-align:left}th{background:#0b1f3a;color:#fff}td{font-weight:700}.info-table th{width:170px}.attendance-table th,.attendance-table td{text-align:center}.att-ok{color:#137333;font-weight:900}.att-ng{color:#9aa4b2;font-weight:900}.field{margin-top:12px}.field label{display:block;font-weight:900;margin-bottom:5px}.field input,.field textarea,.manual-row input{width:100%;border:1px solid #b8c7d7;border-radius:12px;padding:10px 12px}.field textarea{min-height:110px}.manual-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.manual-row input{flex:1;min-width:240px}@media(max-width:900px){.grid,.stats,.latest-grid{grid-template-columns:1fr}.card{padding:24px}.info-table th,.info-table td{display:block;width:100%}.nav-inner{align-items:flex-start;flex-direction:column}#reader{min-height:340px}.scan-frame{width:52%}}
-</style></head><body><nav class="nav"><div class="container nav-inner"><div class="brand">SKYSEF 2026 QR System</div><div><button onclick="showStaff()">Reception</button><button onclick="promptParticipant()">Participant Test</button></div></div></nav><main>
-<section id="participant-view" class="section view"><div class="container"><div class="card"><div class="eyebrow">Participant Information</div><h1>Your SKYSEF Information</h1><div id="participant-content"></div></div></div></section>
-<section id="correction-view" class="section view"><div class="container"><div class="card"><div class="eyebrow">Correction Request</div><h1>Name Correction</h1><div class="field"><label>ID</label><input id="correction-id" readonly></div><div class="field"><label>Corrected Name</label><input id="corrected-name"></div><div class="field"><label>Note</label><textarea id="correction-note"></textarea></div><button class="btn primary" onclick="submitCorrection()">Submit</button><button class="btn secondary" onclick="showParticipant(document.getElementById('correction-id').value)">Back</button><p id="correction-message" class="note"></p></div></div></section>
-<section id="staff-view" class="section view"><div class="container"><div class="grid"><section class="card"><div class="eyebrow">Reception</div><h1>QR Check-in</h1><div class="manual-row"><input id="manual-id" placeholder="Manual ID input"><button class="btn secondary" onclick="manualCheckIn()">Manual Check-in</button></div><div class="qr-wrap"><div id="reader"></div><div class="scan-frame"></div></div><p id="scan-status" class="note">ページ表示後、自動でカメラ起動を試みます。</p></section><section class="card"><div class="eyebrow">Latest Result</div><h2 id="result-title">Waiting</h2><div id="latest-card" class="latest">Please scan a name tag QR code.</div></section><section class="card full"><div class="stats"><div class="stat"><b id="total-count">0</b><span>Total</span></div><div class="stat"><b id="d0802-count">0</b><span>8/2</span></div><div class="stat"><b id="d0803-count">0</b><span>8/3</span></div><div class="stat"><b id="d0804-count">0</b><span>8/4</span></div><div class="stat"><b id="d0805-count">0</b><span>8/5</span></div></div><h2>Attendance by Date</h2><div id="attendance-table-box"></div><h2>Not Checked-in Today</h2><div id="absent-list" class="list"></div></section></div></div></section></main>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SKYSEF 2026 QR</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;background:#f6f8fb;color:#172033;line-height:1.7}
+.container{width:min(1320px,calc(100% - 32px));margin:auto}
+.section{padding:28px 0 40px}
+.grid{display:grid;grid-template-columns:minmax(320px,1fr) minmax(380px,1.15fr) minmax(300px,.9fr);gap:18px;align-items:start}
+.card{background:#fff;border:1px solid #d9e2ec;border-radius:20px;box-shadow:0 14px 34px rgba(12,31,58,.10);padding:26px;min-width:0}
+.eyebrow{color:#00a6d6;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}
+h1,h2{color:#0b1f3a;line-height:1.2;margin:8px 0 18px}
+h1{font-size:2rem} h2{font-size:1.45rem}
+.camera-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.camera-row label{font-weight:900;color:#0b1f3a;white-space:nowrap}
+.camera-row select{width:100%;border:1px solid #b8c7d7;border-radius:10px;padding:10px 12px;background:#fff}
+.qr-wrap{position:relative;width:100%;background:#071426;border-radius:16px;overflow:hidden}
+#reader{width:100%;min-height:420px;background:#071426}
+.scan-guide{position:absolute;left:50%;top:50%;width:74%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #00e0ff;border-radius:14px;pointer-events:none}
+.note{margin-top:10px;color:#5f6f82;font-size:.9rem;white-space:pre-wrap}
+.latest{border-radius:16px;padding:20px;border:1px solid #d9e2ec;background:#f8fbfe}
+.latest-name{font-size:2rem;font-weight:900;color:#0b1f3a}
+.latest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.success-card{background:#effaf1}.warning-card{background:#fff7e8}.error-card{background:#fff0f0;color:#b3261e}
+.flash{animation:flashGreen .9s ease}
+@keyframes flashGreen{0%{background:#00ff55}35%{background:#00ff55}100%{background:#f6f8fb}}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}
+.stat{background:#f8fbfe;border:1px solid #d9e2ec;border-radius:12px;padding:10px}
+.stat b{display:block;font-size:1.45rem;color:#0b1f3a}
+.stat span{font-size:.82rem;color:#5f6f82;font-weight:800}
+.table-wrap{overflow:auto;max-height:360px;border:1px solid #d9e2ec;border-radius:12px}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{padding:10px 12px;border-bottom:1px solid #d9e2ec;text-align:left;white-space:nowrap}
+th{background:#0b1f3a;color:#fff}
+.attendance-table th,.attendance-table td{text-align:center}
+.att-ok{color:#137333;font-weight:900}.att-ng{color:#9aa4b2;font-weight:900}
+.list{display:grid;gap:8px;max-height:760px;overflow:auto}
+.item{border:1px solid #d9e2ec;border-radius:12px;padding:12px;background:#f8fbfe;display:grid;gap:2px}
+.error{color:#d93025;font-weight:800}
+@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.absent-card{grid-column:1/-1}}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.absent-card{grid-column:auto}#reader{min-height:340px}.latest-grid,.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main class="section">
+<div class="container">
+<div class="grid">
+
+<section class="card camera-card">
+  <div class="eyebrow">Camera</div>
+  <h1>QR Check-in</h1>
+  <div class="camera-row">
+    <label for="camera-select">Camera</label>
+    <select id="camera-select" onchange="changeCamera()">
+      <option value="">Loading...</option>
+    </select>
+  </div>
+  <div class="qr-wrap">
+    <div id="reader"></div>
+    <div class="scan-guide"></div>
+  </div>
+  <p id="scan-status" class="note">カメラを準備しています。</p>
+</section>
+
+<section class="card checkin-card">
+  <div class="eyebrow">Check-in Information</div>
+  <h2 id="result-title">Waiting</h2>
+  <div id="latest-card" class="latest">Please scan a name tag QR code.</div>
+
+  <div class="stats">
+    <div class="stat"><b id="total-count">0</b><span>Total</span></div>
+    <div class="stat"><b id="d0802-count">0</b><span>8/2</span></div>
+    <div class="stat"><b id="d0803-count">0</b><span>8/3</span></div>
+    <div class="stat"><b id="d0804-count">0</b><span>8/4</span></div>
+    <div class="stat"><b id="d0805-count">0</b><span>8/5</span></div>
+  </div>
+
+  <h2>Attendance by Date</h2>
+  <div id="attendance-table-box" class="table-wrap"></div>
+</section>
+
+<section class="card absent-card">
+  <div class="eyebrow">Attendance</div>
+  <h2>Not Checked-in Today</h2>
+  <div id="absent-list" class="list"></div>
+</section>
+
+</div>
+</div>
+</main>
+
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbydloYJgKIlJ-4_xQV4GSbdsAYVvvtUjMffZ7DpulnuzYYNzwLYJwrObeZ8tGKsBd1I/exec';let lastId="",lastTime=0,processing=false,qr=null,cameraRunning=false,autoCameraTried=false;
-function init(){window.addEventListener("error",e=>{const st=document.getElementById("scan-status");if(st)st.textContent="JavaScript error: "+e.message+"\n"+e.filename+":"+e.lineno;});const p=new URLSearchParams(location.search),mode=p.get("mode")||"",id=p.get("id")||"";if(mode==="staff")return showStaff();if(id)return showParticipant(id);showStaff();}
-function active(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById(id).classList.add("active");}
-function showStaff(){history.replaceState(null,"",location.pathname+"?mode=staff");active("staff-view");loadSummary();if(!autoCameraTried){autoCameraTried=true;setTimeout(startCameraAuto,400);}}
-function promptParticipant(){const id=prompt("Participant ID");if(id)showParticipant(id);}
-async function showParticipant(id){id=String(id||"").trim();history.replaceState(null,"",location.pathname+"?id="+encodeURIComponent(id));active("participant-view");const box=document.getElementById("participant-content");box.innerHTML='<p class="note">Loading...</p>';try{const d=await gasGet({api:"participant",id});if(!d.ok||!d.participant){box.innerHTML='<p class="error">This ID was not found: '+esc(id)+'</p>';return}const p=d.participant;box.innerHTML='<div class="name-card"><div class="label">Name</div><div class="participant-name">'+esc(p.Name)+'</div></div><table class="info-table"><tr><th>ID</th><td>'+esc(p.ID)+'</td></tr><tr><th>Region</th><td>'+esc(p.Region)+'</td></tr><tr><th>School</th><td>'+esc(p.School)+'</td></tr><tr><th>Name</th><td>'+esc(p.Name)+'</td></tr><tr><th>Current Name</th><td>'+esc(p.CurrentName)+'</td></tr><tr><th>Oral No.</th><td>'+esc(p.OralNo)+'</td></tr><tr><th>Poster No.</th><td>'+esc(p.PosterNo)+'</td></tr><tr><th>IJP1 Group</th><td>'+esc(p.IJP1)+'</td></tr><tr><th>IJP2 Group</th><td>'+esc(p.IJP2)+'</td></tr></table>'+attendanceTable([p])+'<button class="btn primary" onclick="showCorrection(\''+js(id)+'\')">Request name correction</button>'+(p.CorrectionStatus?'<p class="note">Correction status: '+esc(p.CorrectionStatus)+'</p>':'');}catch(e){box.innerHTML='<p class="error">'+esc(e.message||String(e))+'</p>';}}
-function showCorrection(id){active("correction-view");document.getElementById("correction-id").value=id;document.getElementById("corrected-name").value="";document.getElementById("correction-note").value="";document.getElementById("correction-message").textContent="";}
-async function submitCorrection(){const id=document.getElementById("correction-id").value,correctedName=document.getElementById("corrected-name").value,note=document.getElementById("correction-note").value,m=document.getElementById("correction-message");m.className="note";m.textContent="Submitting...";try{const d=await gasGet({api:"correction",id,correctedName,note});m.textContent=d.ok?d.message:d.error;m.className=d.ok?"success":"error";}catch(e){m.textContent=e.message||String(e);m.className="error";}}
-function extractId(txt){try{return new URL(txt).searchParams.get("id")||"";}catch(e){const m=String(txt||"").match(/[?&]id=([^&]+)/);return m?decodeURIComponent(m[1]):String(txt||"").trim();}}
-async function startCameraAuto(){if(cameraRunning)return;const st=document.getElementById("scan-status");if(!window.isSecureContext){st.textContent="カメラはHTTPSまたはlocalhostでのみ起動できます。";return}if(!window.Html5Qrcode){st.textContent="html5-qrcodeを読み込めません。";return}st.textContent="カメラを起動しています...";try{if(!qr)qr=new Html5Qrcode("reader",{verbose:false});let cameras=[];try{cameras=await Html5Qrcode.getCameras();}catch(e){}const config={fps:10,qrbox:(w,h)=>{const size=Math.floor(Math.min(w,h)*0.42);return{width:size,height:size};},aspectRatio:1.333,rememberLastUsedCamera:true,experimentalFeatures:{useBarCodeDetectorIfSupported:true},videoConstraints:{width:{ideal:640},height:{ideal:480},focusMode:"continuous",exposureMode:"continuous",whiteBalanceMode:"continuous"}};const candidates=[];if(cameras&&cameras.length){const back=cameras.find(c=>/back|rear|environment|外|背面/i.test(c.label||""));if(back)candidates.push({deviceId:{exact:back.id}});candidates.push({deviceId:{exact:cameras[0].id}});}candidates.push({facingMode:"environment",width:{ideal:640},height:{ideal:480}});candidates.push({facingMode:"user",width:{ideal:640},height:{ideal:480}});let lastErr=null;for(const cam of candidates){try{await qr.start(cam,config,onScanSuccess,()=>{});cameraRunning=true;st.textContent="カメラ起動中です。QRが見えたら即受付します。";return;}catch(e){lastErr=e;try{if(qr&&qr.isScanning)await qr.stop();}catch(_){}}}throw lastErr||new Error("No camera candidate worked.");}catch(err){cameraRunning=false;st.textContent="カメラを起動できませんでした: "+(err.message||String(err))+"\nChromeのカメラ許可を確認してください。";}}
-function manualCheckIn(){const id=document.getElementById("manual-id").value.trim();if(id)processCheckIn(id);}
-function onScanSuccess(txt){const id=extractId(txt);if(id)processCheckIn(id);}
-function processCheckIn(id){const now=Date.now();if(!id||processing||(id===lastId&&now-lastTime<1200))return;lastId=id;lastTime=now;processing=true;document.getElementById("scan-status").textContent="Processing: "+id;beep();document.body.classList.remove("flash");void document.body.offsetWidth;document.body.classList.add("flash");gasGet({api:"checkin",id}).then(d=>{renderResult(d,id);if(d.summary)renderSummary(d.summary);setTimeout(()=>{processing=false;if(cameraRunning)document.getElementById("scan-status").textContent="Ready for next scan."; },1200);}).catch(e=>{renderError(e.message||String(e));processing=false;});}
-function beep(){try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=880;o.connect(g);g.connect(ctx.destination);g.gain.value=.08;o.start();setTimeout(()=>{o.stop();ctx.close();},120);}catch(e){}}
-async function loadSummary(){try{const d=await gasGet({api:"summary"});if(d.ok)renderSummary(d.summary);else renderError(d.error||"Summary API error.");}catch(e){renderError(e.message||String(e));}}
-async function gasGet(params){const u=new URL(GAS_URL);Object.keys(params).forEach(k=>u.searchParams.set(k,params[k]));u.searchParams.set("t",Date.now());const r=await fetch(u.toString(),{method:"GET",cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
-function renderResult(d,id){const t=document.getElementById("result-title"),c=document.getElementById("latest-card");if(!d||!d.ok){t.textContent="Error";c.className="latest error-card";c.innerHTML="<b>"+esc((d&&d.error)||"Error")+"</b><br>ID: "+esc(id);return}const p=d.participant||{};t.textContent=d.status||"Checked in.";c.className=d.status==="Already checked in."?"latest warning-card":"latest success-card";c.innerHTML='<div class="latest-name">'+esc(p.Name)+'</div><div>'+esc(p.School)+'</div><div class="latest-grid"><span>Region: <b>'+esc(p.Region)+'</b></span><span>Oral: <b>'+esc(p.OralNo)+'</b></span><span>Poster: <b>'+esc(p.PosterNo)+'</b></span><span>IJP1: <b>'+esc(p.IJP1)+'</b></span><span>IJP2: <b>'+esc(p.IJP2)+'</b></span></div>'+attendanceTable([p]);}
-function renderSummary(s){if(!s)return;document.getElementById("total-count").textContent=s.total||0;document.getElementById("d0802-count").textContent=s.counts&&s.counts.D0802||0;document.getElementById("d0803-count").textContent=s.counts&&s.counts.D0803||0;document.getElementById("d0804-count").textContent=s.counts&&s.counts.D0804||0;document.getElementById("d0805-count").textContent=s.counts&&s.counts.D0805||0;document.getElementById("attendance-table-box").innerHTML=attendanceTable(s.allList||[]);const list=document.getElementById("absent-list");list.innerHTML="";(s.absentTodayList||[]).forEach(p=>{const d=document.createElement("div");d.className="item";d.innerHTML="<b>"+esc(p.Name)+"</b><span>"+esc(p.School)+"</span><span>ID: "+esc(p.ID)+"</span>";list.appendChild(d);});}
-function attendanceTable(list){let html='<table class="attendance-table"><tr><th>ID</th><th>Name</th><th>8/2</th><th>8/3</th><th>8/4</th><th>8/5</th></tr>';(list||[]).forEach(p=>{html+='<tr><td>'+esc(p.ID)+'</td><td>'+esc(p.Name)+'</td>'+dayCell(p.D0802At)+dayCell(p.D0803At)+dayCell(p.D0804At)+dayCell(p.D0805At)+'</tr>';});return html+'</table>';}
-function dayCell(v){return v?'<td><span class="att-ok">済</span><br><small>'+esc(v)+'</small></td>':'<td><span class="att-ng">未</span></td>';}
-function renderError(msg){document.getElementById("result-title").textContent="Error";const c=document.getElementById("latest-card");c.className="latest error-card";c.textContent=msg;}
-function esc(v){return String(v||"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));}
-function js(v){return String(v||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
-window.addEventListener("load",()=>{init();setInterval(()=>{const staff=document.getElementById("staff-view");if(staff&&staff.classList.contains("active"))loadSummary();},15000);});
-</script></body></html>
+const GAS_URL='https://script.google.com/macros/s/AKfycbydloYJgKIlJ-4_xQV4GSbdsAYVvvtUjMffZ7DpulnuzYYNzwLYJwrObeZ8tGKsBd1I/exec';
+
+let qr=null;
+let cameraRunning=false;
+let cameras=[];
+let selectedCameraId="";
+let processing=false;
+let lastId="";
+let lastTime=0;
+
+window.addEventListener("load", async function(){
+  await loadCameraList();
+  await startSelectedCamera();
+  await loadSummary();
+  setInterval(loadSummary,15000);
+});
+
+async function loadCameraList(){
+  const select=document.getElementById("camera-select");
+
+  try{
+    cameras=await Html5Qrcode.getCameras();
+    select.innerHTML="";
+
+    if(!cameras.length){
+      select.innerHTML='<option value="">No camera found</option>';
+      document.getElementById("scan-status").textContent="カメラが見つかりません。";
+      return;
+    }
+
+    cameras.forEach(function(camera,index){
+      const option=document.createElement("option");
+      option.value=camera.id;
+      option.textContent=(index+1)+": "+(camera.label||("Camera "+(index+1)));
+      select.appendChild(option);
+    });
+
+    const saved=localStorage.getItem("skysef_camera_id");
+
+    if(saved&&cameras.some(function(camera){return camera.id===saved;})){
+      select.value=saved;
+    }else if(cameras.length>1){
+      select.selectedIndex=1;
+    }else{
+      select.selectedIndex=0;
+    }
+
+    selectedCameraId=select.value;
+  }catch(error){
+    select.innerHTML='<option value="">Camera list error</option>';
+    document.getElementById("scan-status").textContent=
+      "カメラ一覧を取得できませんでした: "+(error.message||String(error));
+  }
+}
+
+async function changeCamera(){
+  const select=document.getElementById("camera-select");
+  selectedCameraId=select.value;
+
+  if(selectedCameraId){
+    localStorage.setItem("skysef_camera_id",selectedCameraId);
+  }
+
+  if(qr&&cameraRunning){
+    try{
+      await qr.stop();
+    }catch(error){}
+    cameraRunning=false;
+  }
+
+  await startSelectedCamera();
+}
+
+async function startSelectedCamera(){
+  const status=document.getElementById("scan-status");
+
+  if(!window.isSecureContext){
+    status.textContent="カメラはHTTPSまたはlocalhostでのみ使用できます。";
+    return;
+  }
+
+  if(!window.Html5Qrcode){
+    status.textContent="html5-qrcodeを読み込めません。";
+    return;
+  }
+
+  if(!selectedCameraId){
+    status.textContent="使用するカメラを選択してください。";
+    return;
+  }
+
+  status.textContent="カメラを起動しています...";
+
+  try{
+    if(!qr){
+      qr=new Html5Qrcode("reader",{verbose:false});
+    }
+
+    const config={
+      fps:30,
+      qrbox:function(width,height){
+        const size=Math.floor(Math.min(width,height)*0.74);
+        return {width:size,height:size};
+      },
+      aspectRatio:1.333,
+      rememberLastUsedCamera:true,
+      experimentalFeatures:{
+        useBarCodeDetectorIfSupported:true
+      },
+      videoConstraints:{
+        width:{ideal:640},
+        height:{ideal:480},
+        focusMode:"continuous",
+        exposureMode:"continuous",
+        whiteBalanceMode:"continuous"
+      }
+    };
+
+    await qr.start(
+      {deviceId:{exact:selectedCameraId}},
+      config,
+      onScanSuccess,
+      function(){}
+    );
+
+    cameraRunning=true;
+    status.textContent="カメラ起動中です。QRコードを枠内に入れてください。";
+  }catch(error){
+    cameraRunning=false;
+    status.textContent="カメラを起動できませんでした: "+(error.message||String(error));
+  }
+}
+
+function extractId(value){
+  try{
+    const url=new URL(value);
+    return url.searchParams.get("id")||"";
+  }catch(error){
+    const match=String(value||"").match(/[?&]id=([^&]+)/);
+    return match?decodeURIComponent(match[1]):String(value||"").trim();
+  }
+}
+
+function onScanSuccess(decodedText){
+  const id=extractId(decodedText);
+  if(id){
+    processCheckIn(id);
+  }
+}
+
+function processCheckIn(id){
+  const now=Date.now();
+
+  if(!id||processing){
+    return;
+  }
+
+  if(id===lastId&&now-lastTime<1200){
+    return;
+  }
+
+  lastId=id;
+  lastTime=now;
+  processing=true;
+
+  document.getElementById("scan-status").textContent=
+    "QR read succeeded: "+id+"\nLoading now...";
+
+  beep();
+
+  document.body.classList.remove("flash");
+  void document.body.offsetWidth;
+  document.body.classList.add("flash");
+
+  gasGet({api:"checkin",id:id})
+    .then(function(data){
+      renderResult(data,id);
+
+      if(data.summary){
+        renderSummary(data.summary);
+      }
+
+      setTimeout(function(){
+        processing=false;
+
+        if(cameraRunning){
+          document.getElementById("scan-status").textContent="Ready for next scan.";
+        }
+      },1200);
+    })
+    .catch(function(error){
+      renderError(error.message||String(error));
+      processing=false;
+    });
+}
+
+function beep(){
+  try{
+    const context=new (window.AudioContext||window.webkitAudioContext)();
+    const oscillator=context.createOscillator();
+    const gain=context.createGain();
+
+    oscillator.type="sine";
+    oscillator.frequency.value=1040;
+    gain.gain.value=.18;
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+
+    setTimeout(function(){
+      oscillator.frequency.value=1320;
+    },120);
+
+    setTimeout(function(){
+      oscillator.stop();
+      context.close();
+    },320);
+  }catch(error){}
+}
+
+async function loadSummary(){
+  try{
+    const data=await gasGet({api:"summary"});
+
+    if(data.ok){
+      renderSummary(data.summary);
+    }else{
+      renderError(data.error||"Summary API error.");
+    }
+  }catch(error){
+    renderError(error.message||String(error));
+  }
+}
+
+async function gasGet(params){
+  const url=new URL(GAS_URL);
+
+  Object.keys(params).forEach(function(key){
+    url.searchParams.set(key,params[key]);
+  });
+
+  url.searchParams.set("t",Date.now());
+
+  const response=await fetch(url.toString(),{
+    method:"GET",
+    cache:"no-store"
+  });
+
+  if(!response.ok){
+    throw new Error("GAS response error: "+response.status);
+  }
+
+  return await response.json();
+}
+
+function renderResult(data,id){
+  const title=document.getElementById("result-title");
+  const card=document.getElementById("latest-card");
+
+  if(!data||!data.ok){
+    title.textContent="Error";
+    card.className="latest error-card";
+    card.innerHTML="<b>"+escapeHtml((data&&data.error)||"Error")+"</b><br>ID: "+escapeHtml(id);
+    return;
+  }
+
+  const person=data.participant||{};
+
+  title.textContent=data.status||"Checked in.";
+  card.className=
+    data.status==="Already checked in."
+      ?"latest warning-card"
+      :"latest success-card";
+
+  card.innerHTML=
+    '<div class="latest-name">'+escapeHtml(person.Name)+'</div>'+
+    '<div>'+escapeHtml(person.School)+'</div>'+
+    '<div class="latest-grid">'+
+      '<span>Region: <b>'+escapeHtml(person.Region)+'</b></span>'+
+      '<span>Oral: <b>'+escapeHtml(person.OralNo)+'</b></span>'+
+      '<span>Poster: <b>'+escapeHtml(person.PosterNo)+'</b></span>'+
+      '<span>IJP1: <b>'+escapeHtml(person.IJP1)+'</b></span>'+
+      '<span>IJP2: <b>'+escapeHtml(person.IJP2)+'</b></span>'+
+    '</div>'+
+    attendanceTable([person]);
+}
+
+function renderSummary(summary){
+  if(!summary){
+    return;
+  }
+
+  document.getElementById("total-count").textContent=summary.total||0;
+  document.getElementById("d0802-count").textContent=
+    summary.counts&&summary.counts.D0802||0;
+  document.getElementById("d0803-count").textContent=
+    summary.counts&&summary.counts.D0803||0;
+  document.getElementById("d0804-count").textContent=
+    summary.counts&&summary.counts.D0804||0;
+  document.getElementById("d0805-count").textContent=
+    summary.counts&&summary.counts.D0805||0;
+
+  document.getElementById("attendance-table-box").innerHTML=
+    attendanceTable(summary.allList||[]);
+
+  const list=document.getElementById("absent-list");
+  list.innerHTML="";
+
+  (summary.absentTodayList||[]).forEach(function(person){
+    const item=document.createElement("div");
+    item.className="item";
+    item.innerHTML=
+      "<b>"+escapeHtml(person.Name)+"</b>"+
+      "<span>"+escapeHtml(person.School)+"</span>"+
+      "<span>ID: "+escapeHtml(person.ID)+"</span>";
+
+    list.appendChild(item);
+  });
+}
+
+function attendanceTable(list){
+  let html=
+    '<table class="attendance-table">'+
+    '<tr><th>ID</th><th>Name</th><th>8/2</th><th>8/3</th><th>8/4</th><th>8/5</th></tr>';
+
+  (list||[]).forEach(function(person){
+    html+=
+      '<tr>'+
+      '<td>'+escapeHtml(person.ID)+'</td>'+
+      '<td>'+escapeHtml(person.Name)+'</td>'+
+      attendanceCell(person.D0802At)+
+      attendanceCell(person.D0803At)+
+      attendanceCell(person.D0804At)+
+      attendanceCell(person.D0805At)+
+      '</tr>';
+  });
+
+  return html+"</table>";
+}
+
+function attendanceCell(value){
+  if(value){
+    return '<td><span class="att-ok">済</span><br><small>'+
+      escapeHtml(value)+
+      '</small></td>';
+  }
+
+  return '<td><span class="att-ng">未</span></td>';
+}
+
+function renderError(message){
+  document.getElementById("result-title").textContent="Error";
+
+  const card=document.getElementById("latest-card");
+  card.className="latest error-card";
+  card.textContent=message;
+}
+
+function escapeHtml(value){
+  return String(value||"").replace(/[&<>"']/g,function(character){
+    return {
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[character];
+  });
+}
+</script>
+</body>
+</html>
