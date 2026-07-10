@@ -44,7 +44,9 @@ th{background:#0b1f3a;color:#fff}
 @media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.absent-card{grid-column:1/-1}}
 @media(max-width:760px){.grid{grid-template-columns:1fr}.absent-card{grid-column:auto}#reader{min-height:340px}.latest-grid,.stats{grid-template-columns:1fr 1fr}}
 </style>
-</head>
+<style>
+html,body{width:100%;min-height:100%;overflow-x:hidden}body{margin:0}.section{padding:8px!important;min-height:100vh}.container{width:100%!important;max-width:none!important;margin:0!important}.grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr) minmax(0,.9fr)!important;gap:8px!important;min-height:calc(100vh - 16px)!important}.card{padding:14px!important;border-radius:12px!important;min-height:calc(100vh - 16px)!important;height:calc(100vh - 16px)!important;overflow:auto!important}.qr-wrap{max-width:none!important}.table-wrap{max-height:calc(100vh - 390px)!important}.list{max-height:calc(100vh - 100px)!important}.sync-badge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:.8rem;font-weight:800;margin-top:8px}.sync-local{background:#e8f4ff;color:#0b5ea8}.sync-syncing{background:#fff4df;color:#9a5a00}.sync-done{background:#e9f8ed;color:#137333}.sync-error{background:#fff0f0;color:#b3261e}@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr!important}.absent-card{grid-column:1/-1}.card{height:auto!important;min-height:auto!important}}@media(max-width:760px){.grid{grid-template-columns:1fr!important}.absent-card{grid-column:auto}}
+</style></head>
 <body>
 <main class="section">
 <div class="container">
@@ -69,7 +71,7 @@ th{background:#0b1f3a;color:#fff}
 <section class="card checkin-card">
   <div class="eyebrow">Check-in Information</div>
   <h2 id="result-title">Waiting</h2>
-  <div id="latest-card" class="latest">Please scan a name tag QR code.</div>
+  <div id="latest-card" class="latest">Please scan a name tag QR code.</div><div id="sync-status" class="sync-badge sync-syncing">Loading master list...</div>
 
   <div class="stats">
     <div class="stat"><b id="total-count">0</b><span>Total</span></div>
@@ -103,12 +105,16 @@ let selectedCameraId="";
 let processing=false;
 let lastId="";
 let lastTime=0;
+let participantMap=new Map();
+let localSummary=null;
+let pendingSync=new Map();
 
-window.addEventListener("load", async function(){
+window.addEventListener("load",async function(){
   await loadCameraList();
+  await preloadMasterList();
   await startSelectedCamera();
-  await loadSummary();
-  setInterval(loadSummary,15000);
+  setInterval(backgroundRefresh,30000);
+  window.addEventListener("online",flushPendingSync);
 });
 
 async function loadCameraList(){
@@ -246,48 +252,14 @@ function onScanSuccess(decodedText){
 
 function processCheckIn(id){
   const now=Date.now();
-
-  if(!id||processing){
-    return;
-  }
-
-  if(id===lastId&&now-lastTime<1200){
-    return;
-  }
-
-  lastId=id;
-  lastTime=now;
-  processing=true;
-
-  document.getElementById("scan-status").textContent=
-    "QR read succeeded: "+id+"\nLoading now...";
-
-  beep();
-
-  document.body.classList.remove("flash");
-  void document.body.offsetWidth;
-  document.body.classList.add("flash");
-
-  gasGet({api:"checkin",id:id})
-    .then(function(data){
-      renderResult(data,id);
-
-      if(data.summary){
-        renderSummary(data.summary);
-      }
-
-      setTimeout(function(){
-        processing=false;
-
-        if(cameraRunning){
-          document.getElementById("scan-status").textContent="Ready for next scan.";
-        }
-      },1200);
-    })
-    .catch(function(error){
-      renderError(error.message||String(error));
-      processing=false;
-    });
+  if(!id||processing)return;
+  if(id===lastId&&now-lastTime<1200)return;
+  lastId=id;lastTime=now;processing=true;
+  document.getElementById("scan-status").textContent="QR read succeeded: "+id+"\nDisplaying local check-in information...";
+  beep();document.body.classList.remove("flash");void document.body.offsetWidth;document.body.classList.add("flash");
+  const displayed=renderOptimisticResult(id);
+  if(displayed){document.getElementById("scan-status").textContent="Check-in displayed.\nSaving attendance record in the background...";syncCheckInInBackground(id);}
+  setTimeout(function(){processing=false;if(cameraRunning)document.getElementById("scan-status").textContent="Ready for next scan.";},700);
 }
 
 function beep(){
@@ -315,19 +287,19 @@ function beep(){
   }catch(error){}
 }
 
-async function loadSummary(){
-  try{
-    const data=await gasGet({api:"summary"});
-
-    if(data.ok){
-      renderSummary(data.summary);
-    }else{
-      renderError(data.error||"Summary API error.");
-    }
-  }catch(error){
-    renderError(error.message||String(error));
-  }
-}
+function setSyncStatus(type,text){const el=document.getElementById("sync-status");if(!el)return;el.className="sync-badge sync-"+type;el.textContent=text;}
+function hydrateLocalData(summary){localSummary=summary||{total:0,counts:{D0802:0,D0803:0,D0804:0,D0805:0},allList:[],absentTodayList:[]};participantMap=new Map();(localSummary.allList||[]).forEach(p=>participantMap.set(String(p.ID||"").trim(),p));}
+async function preloadMasterList(){setSyncStatus("syncing","Loading master list...");try{const data=await gasGet({api:"summary"});if(!data.ok)throw new Error(data.error||"Summary API error.");hydrateLocalData(data.summary);renderSummary(localSummary);setSyncStatus("done","Master list ready");await flushPendingSync();}catch(e){setSyncStatus("error","Master list load failed");renderError(e.message||String(e));}}
+function getTodayProperty(){const md=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(new Date());return md==="8/3"?"D0803At":md==="8/4"?"D0804At":md==="8/5"?"D0805At":"D0802At";}
+function getTodayCountKey(){return {D0802At:"D0802",D0803At:"D0803",D0804At:"D0804",D0805At:"D0805"}[getTodayProperty()];}
+function optimisticCheckIn(id){const p=participantMap.get(String(id||"").trim());if(!p)return null;const prop=getTodayProperty(),already=Boolean(p[prop]);const stamp=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date()).replace(/\//g,"-");if(!already){p[prop]=stamp;p.AttendedAt=stamp;if(localSummary&&localSummary.counts){const key=getTodayCountKey();localSummary.counts[key]=(localSummary.counts[key]||0)+1;}if(localSummary)localSummary.absentTodayList=(localSummary.absentTodayList||[]).filter(x=>String(x.ID||"").trim()!==String(id||"").trim());}return {person:p,already};}
+function renderOptimisticResult(id){const r=optimisticCheckIn(id);if(!r){renderError("ID was not found in the locally loaded master list.");return false;}const p=r.person,t=document.getElementById("result-title"),c=document.getElementById("latest-card");t.textContent=r.already?"Already checked in.":"Checked in.";c.className=r.already?"latest warning-card":"latest success-card";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>Region: <b>'+escapeHtml(p.Region)+'</b></span><span>Oral: <b>'+escapeHtml(p.OralNo)+'</b></span><span>Poster: <b>'+escapeHtml(p.PosterNo)+'</b></span><span>IJP1: <b>'+escapeHtml(p.IJP1)+'</b></span><span>IJP2: <b>'+escapeHtml(p.IJP2)+'</b></span></div>'+attendanceTable([p]);renderSummary(localSummary);setSyncStatus("local","Displayed locally");return true;}
+function loadPending(){try{pendingSync=new Map(JSON.parse(localStorage.getItem("skysef_pending_sync")||"[]"));}catch(e){pendingSync=new Map();}}
+function savePending(id){pendingSync.set(id,Date.now());localStorage.setItem("skysef_pending_sync",JSON.stringify(Array.from(pendingSync.entries())));}
+async function syncCheckInInBackground(id){savePending(id);setSyncStatus("syncing","Saving to GAS...");try{const data=await gasGet({api:"checkin",id});if(!data.ok)throw new Error(data.error||"Check-in failed.");pendingSync.delete(id);localStorage.setItem("skysef_pending_sync",JSON.stringify(Array.from(pendingSync.entries())));if(data.summary){hydrateLocalData(data.summary);renderSummary(localSummary);}renderResult(data,id);setSyncStatus("done","Saved to GAS");}catch(e){setSyncStatus("error","Displayed / GAS retry pending");}}
+async function flushPendingSync(){loadPending();if(!navigator.onLine||pendingSync.size===0)return;for(const id of Array.from(pendingSync.keys()))await syncCheckInInBackground(id);}
+async function backgroundRefresh(){if(pendingSync.size>0){await flushPendingSync();return;}try{const data=await gasGet({api:"summary"});if(data.ok){hydrateLocalData(data.summary);renderSummary(localSummary);setSyncStatus("done","Synchronized");}}catch(e){}}
+async function loadSummary(){return preloadMasterList();}
 
 async function gasGet(params){
   const url=new URL(GAS_URL);
