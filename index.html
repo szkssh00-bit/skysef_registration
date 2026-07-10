@@ -68,7 +68,7 @@ select{width:100%;border:1px solid #afbecd;border-radius:9px;padding:9px 10px;ba
 </div>
 </main>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbzRCI855qATrUd6IICX8AXGapRT1xQj3uvXs-XXxQak6W1Bs57nPHIyJeV7yTX9oqgw/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbzDwpZQHKPnbIjhVqU6uxMQRcvb7yQrEsHCfy6D3eY9q0csqifDFE-bgmaR2Mk8y8N1/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null;
 window.addEventListener("load",async function(){selectedDate=detectInitialDate();document.getElementById("event-date").value=selectedDate;restoreQueue();bindEvents();await Promise.all([loadMasterList(),loadCameraList()]);await startSelectedCamera();scheduleFlush(1200);setInterval(backgroundRefresh,30000);window.addEventListener("online",function(){scheduleFlush(100);});});
