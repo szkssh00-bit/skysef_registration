@@ -7,73 +7,195 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%}
+html,body{width:100%;min-height:100%}
 body{font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;background:#f3f6fa;color:#172033;line-height:1.55}
-main{height:100vh;padding:8px}
-.layout{display:grid;grid-template-columns:1.02fr 1.08fr .9fr;gap:8px;height:calc(100vh - 16px)}
-.card{background:#fff;border:1px solid #d7e0ea;border-radius:12px;box-shadow:0 6px 18px rgba(12,31,58,.08);padding:14px;min-width:0;overflow:auto}
+main{min-height:100vh;padding:8px}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(560px,1.45fr) minmax(360px,.85fr);
+  grid-template-rows:minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:
+    "camera checkin"
+    "camera absent";
+  gap:8px;
+  height:calc(100vh - 16px);
+}
+
+.camera-card{grid-area:camera;display:flex;flex-direction:column;min-height:0}
+.checkin-card{grid-area:checkin;min-height:0}
+.absent-card{grid-area:absent;min-height:0}
+
+.card{
+  background:#fff;
+  border:1px solid #d7e0ea;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(12,31,58,.08);
+  padding:14px;
+  min-width:0;
+  overflow:auto
+}
+
 .title-black{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a;line-height:1.05}
-h1.title-black{font-size:clamp(1.8rem,2.5vw,3.1rem);margin-bottom:10px}
-h2.title-black{font-size:clamp(1.35rem,1.8vw,2rem);margin-bottom:10px}
+h1.title-black{font-size:clamp(1.8rem,2.3vw,2.8rem);margin-bottom:10px}
+h2.title-black{font-size:clamp(1.3rem,1.7vw,1.8rem);margin-bottom:10px}
 .subhead{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a;font-size:1rem;margin:10px 0 8px}
-.controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
-.control-row{display:flex;align-items:center;gap:8px}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.control-row{display:flex;align-items:center;gap:8px;min-width:0}
 .control-row label{font-weight:900;white-space:nowrap}
-select{width:100%;border:1px solid #afbecd;border-radius:9px;padding:9px 10px;background:#fff;font-weight:700}
-.qr-wrap{position:relative;width:100%;height:calc(100vh - 170px);min-height:360px;background:#071426;border-radius:10px;overflow:hidden}
-#qr-shaded-region {display: none !important;}
-#reader{width:100%;height:100%;background:#071426}
-.scan-guide{position:absolute;left:50%;top:50%;width:76%;max-height:88%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #00e0ff;border-radius:12px;pointer-events:none}
+select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding:9px 10px;background:#fff;font-weight:700}
+
+.qr-wrap{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  max-height:calc(100vh - 160px);
+  flex:1 1 auto;
+  background:#071426;
+  border-radius:10px;
+  overflow:hidden
+}
+
+#qr-shaded-region{display:none!important}
+
+#reader{
+  width:100%!important;
+  height:100%!important;
+  background:#071426;
+  overflow:hidden
+}
+
+#reader video{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:contain!important;
+  background:#071426
+}
+
+/* custom guide only */
+.scan-guide{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:67.5%;
+  aspect-ratio:1/1;
+  transform:translate(-50%,-50%);
+  border:3px solid #00e0ff;
+  border-radius:12px;
+  pointer-events:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.18)
+}
+
 .status{margin-top:8px;padding:8px 10px;border-radius:9px;background:#eef5fb;color:#35516c;font-size:.9rem;font-weight:700;white-space:pre-wrap}
-.status.local{background:#e7f4ff;color:#0b5ea8}.status.syncing{background:#fff3dc;color:#8a5200}.status.done{background:#e7f7ec;color:#137333}.status.error{background:#fff0f0;color:#b3261e}
+.status.local{background:#e7f4ff;color:#0b5ea8}
+.status.syncing{background:#fff3dc;color:#8a5200}
+.status.done{background:#e7f7ec;color:#137333}
+.status.error{background:#fff0f0;color:#b3261e}
+
 .latest{border:1px solid #d7e0ea;border-radius:10px;padding:12px;background:#f8fbfe;min-height:112px}
-.latest.success{background:#eaf8ee;border-color:#b8dec1}.latest.warning{background:#fff6df;border-color:#f0d494}.latest.error{background:#fff0f0;border-color:#efb5b5}
+.latest.success{background:#eaf8ee;border-color:#b8dec1}
+.latest.warning{background:#fff6df;border-color:#f0d494}
+.latest.error{background:#fff0f0;border-color:#efb5b5}
 .latest-name{font-family:"Arial Black",Arial,sans-serif;font-size:1.7rem;color:#0b1f3a}
 .latest-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:6px;font-size:.9rem}
+
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
 .metric{border:1px solid #d7e0ea;border-radius:9px;background:#f8fbfe;padding:8px}
 .metric b{display:block;font-family:"Arial Black",Arial,sans-serif;font-size:1.35rem;color:#0b1f3a}
 .metric span{font-size:.75rem;color:#5f6f82;font-weight:800}
-.list{display:grid;gap:6px;overflow:auto}.attendance-list{max-height:calc(100vh - 350px)}.absent-list{max-height:calc(100vh - 92px)}
-.item{border:1px solid #d7e0ea;border-radius:9px;padding:9px 10px;background:#f8fbfe;display:grid;gap:1px}
-.item strong{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a}.item small{color:#5f6f82}
-.flash{animation:flashGreen .85s ease}@keyframes flashGreen{0%{background:#00ff4c}35%{background:#00ff4c}100%{background:#f3f6fa}}
-@media(max-width:1100px){body{height:auto}main{height:auto}.layout{grid-template-columns:1fr 1fr;height:auto}.card{overflow:visible}.absent-card{grid-column:1/-1}.qr-wrap{height:520px}.attendance-list,.absent-list{max-height:420px}}
-@media(max-width:760px){.layout{grid-template-columns:1fr}.absent-card{grid-column:auto}.qr-wrap{height:420px}}
 
-.view{display:none}.view.active{display:block}.participant-shell{width:min(760px,calc(100% - 24px));margin:24px auto}.participant-card{background:#fff;border:1px solid #d7e0ea;border-radius:18px;box-shadow:0 10px 30px rgba(12,31,58,.1);padding:22px}.name-banner{background:linear-gradient(135deg,#0b1f3a,#123d68);color:#fff;border-radius:16px;padding:22px;margin:14px 0}.name-banner .label{color:#8de7ff;font-weight:900}.name-banner .name{font-family:"Arial Black",Arial,sans-serif;font-size:clamp(2rem,7vw,4rem)}.info-table{width:100%;border-collapse:collapse}.info-table th,.info-table td{padding:12px 14px;border-bottom:1px solid #d9e2ec;text-align:left}.info-table th{width:170px;background:#0b1f3a;color:#fff}.form-grid{display:grid;gap:10px;margin-top:16px}.form-grid label{font-weight:800}.form-grid input,.form-grid textarea{display:block;width:100%;margin-top:4px;border:1px solid #afbecd;border-radius:9px;padding:9px 10px}.form-grid textarea{min-height:100px}.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.primary,.secondary{border:0;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer}.primary{background:#0b1f3a;color:#fff}.secondary{background:#eef5fb;color:#0b1f3a;border:1px solid #c8d6e4}@media(max-width:760px){.info-table th,.info-table td{display:block;width:100%}}
+.list{display:grid;gap:6px;overflow:auto}
+.attendance-list{max-height:calc(50vh - 285px)}
+.absent-list{max-height:calc(50vh - 92px)}
+
+.item{border:1px solid #d7e0ea;border-radius:9px;padding:9px 10px;background:#f8fbfe;display:grid;gap:1px}
+.item strong{font-family:"Arial Black",Arial,sans-serif;color:#0b1f3a}
+.item small{color:#5f6f82}
+
+.flash{animation:flashGreen .85s ease}
+@keyframes flashGreen{0%{background:#00ff4c}35%{background:#00ff4c}100%{background:#f3f6fa}}
+
+.view{display:none}
+.view.active{display:block}
+.participant-shell{width:min(760px,calc(100% - 24px));margin:24px auto}
+.participant-card{background:#fff;border:1px solid #d7e0ea;border-radius:18px;box-shadow:0 10px 30px rgba(12,31,58,.1);padding:22px}
+.name-banner{background:linear-gradient(135deg,#0b1f3a,#123d68);color:#fff;border-radius:16px;padding:22px;margin:14px 0}
+.name-banner .label{color:#8de7ff;font-weight:900}
+.name-banner .name{font-family:"Arial Black",Arial,sans-serif;font-size:clamp(2rem,7vw,4rem)}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th,.info-table td{padding:12px 14px;border-bottom:1px solid #d9e2ec;text-align:left}
+.info-table th{width:170px;background:#0b1f3a;color:#fff}
+
+.form-grid{display:grid;gap:10px;margin-top:16px}
+.form-grid label{font-weight:800}
+.form-grid input,.form-grid textarea{display:block;width:100%;margin-top:4px;border:1px solid #afbecd;border-radius:9px;padding:9px 10px}
+.form-grid textarea{min-height:100px}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.primary,.secondary{border:0;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer}
+.primary{background:#0b1f3a;color:#fff}
+.secondary{background:#eef5fb;color:#0b1f3a;border:1px solid #c8d6e4}
+
+@media(max-width:1100px){
+  body{height:auto}
+  main{height:auto}
+  .layout{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto;
+    grid-template-areas:
+      "camera camera"
+      "checkin absent";
+    height:auto
+  }
+  .qr-wrap{aspect-ratio:16/9;max-height:none}
+  .attendance-list,.absent-list{max-height:420px}
+}
+
+@media(max-width:760px){
+  .layout{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "camera"
+      "checkin"
+      "absent"
+  }
+  .controls{grid-template-columns:1fr}
+  .qr-wrap{aspect-ratio:4/3}
+  .info-table th,.info-table td{display:block;width:100%}
+}
 </style>
 </head>
 <body>
-<section id="staff-view" class="view">
+<section id="staff-view" class="view active">
 <main>
 <div class="layout">
 <section class="card camera-card">
   <h1 class="title-black">SKYSEF Check in System</h1>
   <div class="controls">
     <div class="control-row"><label for="event-date">Date</label><select id="event-date"><option value="8/2">August 2</option><option value="8/3">August 3</option><option value="8/4">August 4</option><option value="8/5">August 5</option></select></div>
-    <div class="control-row"><label for="camera-select">Camera</label><select id="camera-select"><option value="">Loading cameras...</option></select></div>
+    <div class="control-row"><label for="camera-select">Camera</label><select id="camera-select"><option value="74c71cb2a4fdd880e952b7320c76b26918409118dda7206193f69f1c942ca2c6">1: 3D Webcam (18e3:5031)</option></select></div>
   </div>
-  <div class="qr-wrap"><div id="reader"></div><div class="scan-guide"></div></div>
-  <div id="scan-status" class="status">Preparing camera and participant list...</div>
+  <div class="qr-wrap"><div id="reader" style="position: relative;"><video muted="true" playsinline="" style="width: 393px; display: block;"></video><canvas id="qr-canvas" width="265" height="265" style="width: 265px; height: 265px; display: none;"></canvas><div id="qr-shaded-region" style="position: absolute; border-width: 15px 64px; border-style: solid; border-color: rgba(0, 0, 0, 0.48); box-sizing: border-box; inset: 0px;"><div style="position: absolute; background-color: rgb(255, 255, 255); width: 40px; height: 5px; top: -5px; left: 0px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 40px; height: 5px; top: -5px; right: 0px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 40px; height: 5px; bottom: -5px; left: 0px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 40px; height: 5px; bottom: -5px; right: 0px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 5px; height: 45px; top: -5px; left: -5px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 5px; height: 45px; bottom: -5px; left: -5px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 5px; height: 45px; top: -5px; right: -5px;"></div><div style="position: absolute; background-color: rgb(255, 255, 255); width: 5px; height: 45px; bottom: -5px; right: -5px;"></div></div><div style="display: none; position: absolute; top: 0px; z-index: 1; background: rgba(9, 9, 9, 0.46); color: rgb(255, 236, 236); text-align: center; width: 100%;">Scanner paused</div></div><div class="scan-guide"></div></div>
+  <div id="scan-status" class="status done">Already checked in. Ready for next scan.</div>
 </section>
 <section class="card checkin-card">
   <h2 class="title-black">Check-in Information</h2>
-  <div id="latest-card" class="latest">Scan a participant QR code.</div>
-  <div class="metrics"><div class="metric"><b id="planned-count">0</b><span>Planned</span></div><div class="metric"><b id="checked-count">0</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
-  <div id="sync-status" class="status done">Master list not loaded</div>
+  <div id="latest-card" class="latest warning"><div class="latest-name">ゆうた</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-001</b></span><span>Date: <b>8/2</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>88</b></span></div><div class="status syncing">Already checked in.</div></div>
+  <div class="metrics"><div class="metric"><b id="planned-count">9</b><span>Planned</span></div><div class="metric"><b id="checked-count">3</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
+  <div id="sync-status" class="status done">Master list synchronized.</div>
   <div class="subhead">Attendance List</div>
-  <div id="attendance-list" class="list attendance-list"></div>
+  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>ゆうた</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-001 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
 </section>
 <section class="card absent-card">
   <h2 class="title-black">Not Checked-in Today</h2>
-  <div id="absent-list" class="list absent-list"></div>
+  <div id="absent-list" class="list absent-list"><div class="item"><strong>Name 03</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-004</small></div><div class="item"><strong>Name 04</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-005</small></div><div class="item"><strong>Name 05</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-006</small></div><div class="item"><strong>Name 06</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-007</small></div><div class="item"><strong>Name 07</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-008</small></div><div class="item"><strong>Name 08</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-009</small></div></div>
 </section>
 </div>
 </main>
 </section>
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
-<section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly></label><label>Current Name<input id="correction-current" readonly></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
+<section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name<input id="correction-current" readonly=""></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
 const GAS_URL='https://script.google.com/macros/s/AKfycbzoYAKAoraGUbQCorU1bDr-eIEzJfko2ekNwfW4BDL18fyUek1PHnfr0wsC8Thu60h5/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
@@ -154,5 +276,7 @@ async function gasGet(params){const u=new URL(GAS_URL);Object.keys(params).forEa
 async function gasPost(payload){const r=await fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload),cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 </script>
+
+
 </body>
 </html>
