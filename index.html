@@ -289,6 +289,26 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+.name-correction-button{
+  width:100%;
+  margin-top:16px;
+  border:2px solid #0b1f3a;
+  border-radius:12px;
+  padding:13px 16px;
+  background:#fff;
+  color:#0b1f3a;
+  font-family:"Arial Black",Arial,sans-serif;
+  font-size:1rem;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(12,31,58,.08);
+}
+.name-correction-button:hover{
+  background:#eef5fb;
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -319,9 +339,9 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 </main>
 </section>
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
-<section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name<input id="correction-current" readonly=""></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
+<section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbwtesaHJlzo8QYRQdA18nMNs85AT18yIfYJ-oN-CPTV5EFf4qSwb5NBnOwIf6sFgEKz/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbxnrydr3fwzJ_Rb9sQuQWeU-cGmqs90FmCr4JBlsWayk2xccDgGL9s0OjamrVTjB6zb/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -348,7 +368,7 @@ async function loadParticipantInformation(id) {
             '<tr><th>Poster No.</th><td>' + escapeHtml(p["Poster No."]) + '</td></tr>' +
             '<tr><th>International Joint Project1 Group</th><td>' + escapeHtml(p["International Joint Project1 Group"]) + '</td></tr>' +
             '<tr><th>International Joint Project2 Group</th><td>' + escapeHtml(p["International Joint Project2 Group"]) + '</td></tr></table>' +
-            buildParticipantLinks(p) + 
+            '<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>' + buildParticipantLinks(p) + 
             (p["Correction Status"] ? '<div class="status done">Correction status: ' + escapeHtml(p["Correction Status"]) + '</div>' : '');
             
     } catch (e) {
@@ -453,7 +473,61 @@ async function openQuestionnaire(){
 
 function openCorrection(){const p=participantMap.get(normalizeId(currentParticipantId));showView("correction-view");document.getElementById("correction-id").value=currentParticipantId;document.getElementById("correction-current").value=p?p.Name:"";document.getElementById("correction-new").value="";document.getElementById("correction-note").value="";document.getElementById("correction-status").textContent="";}
 function backToParticipant(){showView("participant-view");}
-async function submitCorrection(){const id=document.getElementById("correction-id").value,correctedName=document.getElementById("correction-new").value.trim(),note=document.getElementById("correction-note").value.trim(),status=document.getElementById("correction-status");if(!correctedName){status.className="status error";status.textContent="Correct Name is required.";return;}status.className="status syncing";status.textContent="Submitting correction...";try{const d=await gasPost({api:"correctName",id,correctedName,note});if(!d.ok)throw new Error(d.error||"Correction failed.");status.className="status done";status.textContent="Name has been corrected.";await loadParticipantInformation(id);showView("participant-view");}catch(e){status.className="status error";status.textContent=e.message||String(e);}}
+async function submitCorrection(){
+  const id=document.getElementById("correction-id").value;
+  const correctedName=document.getElementById("correction-new").value.trim();
+  const note=document.getElementById("correction-note").value.trim();
+  const status=document.getElementById("correction-status");
+
+  if(!correctedName){
+    status.className="status error";
+    status.textContent="New Correct Name is required.";
+    return;
+  }
+
+  status.className="status syncing";
+  status.textContent="Updating the master list...";
+
+  try{
+    const data=await gasPost({
+      api:"correctName",
+      id:id,
+      correctedName:correctedName,
+      note:note
+    });
+
+    if(!data.ok){
+      throw new Error(data.error||"Correction failed.");
+    }
+
+    const updated=data.participant;
+
+    if(updated){
+      participantMap.set(normalizeId(updated.ID),updated);
+
+      const index=participants.findIndex(function(person){
+        return normalizeId(person.ID)===normalizeId(updated.ID);
+      });
+
+      if(index>=0){
+        participants[index]=updated;
+      }
+
+      currentParticipantId=updated.ID;
+    }
+
+    status.className="status done";
+    status.textContent="Name has been updated in the master list.";
+
+    await loadParticipantInformation(id);
+    showView("participant-view");
+
+  }catch(error){
+    status.className="status error";
+    status.textContent=error.message||String(error);
+  }
+}
+
 function bindEvents(){document.getElementById("event-date").addEventListener("change",function(e){selectedDate=e.target.value;renderSelectedDate();});document.getElementById("camera-select").addEventListener("change",async function(e){selectedCameraId=e.target.value;if(selectedCameraId)localStorage.setItem("skysef_camera_id",selectedCameraId);if(qr&&cameraRunning){try{await qr.stop();}catch(_){}cameraRunning=false;}await startSelectedCamera();});}
 function detectInitialDate(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(new Date());return DATE_CONFIG[p]?p:"8/2";}
 async function loadMasterList(){setSyncStatus("syncing","Loading participant list...");try{const d=await gasGet({api:"master"});if(!d.ok)throw new Error(d.error||"Master API error.");participants=d.participants||[];participantMap=new Map();participants.forEach(p=>participantMap.set(normalizeId(p.ID),p));applyQueuedItemsToLocalData();renderSelectedDate();setSyncStatus("done","Participant list ready");}catch(e){setSyncStatus("error","Participant list load failed: "+(e.message||String(e)));}}
