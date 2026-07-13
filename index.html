@@ -13,7 +13,7 @@ main{min-height:100vh;padding:8px}
 
 .layout{
   display:grid;
-  grid-template-columns:minmax(560px,1.45fr) minmax(360px,.85fr);
+  grid-template-columns:minmax(460px,1.05fr) minmax(520px,1.25fr);
   grid-template-rows:minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:
     "camera checkin"
@@ -70,7 +70,9 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
   width:100%!important;
   height:100%!important;
   display:block!important;
-  object-fit:contain!important;
+  object-fit:cover!important;
+  transform:scale(1.5);
+  transform-origin:center center;
   background:#071426
 }
 
@@ -79,7 +81,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
   position:absolute;
   left:50%;
   top:50%;
-  width:67.5%;
+  width:58%;
   aspect-ratio:1/1;
   transform:translate(-50%,-50%);
   border:3px solid #00e0ff;
