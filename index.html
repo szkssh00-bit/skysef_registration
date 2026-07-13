@@ -260,6 +260,35 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+@media(min-width:1101px){
+  #staff-view .checkin-card,
+  #staff-view .absent-card{
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+  }
+
+  #staff-view .attendance-list,
+  #staff-view .absent-list{
+    flex:1 1 0!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+
+  #staff-view .checkin-card .attendance-list{
+    height:auto!important;
+  }
+
+  #staff-view .absent-card .absent-list{
+    height:auto!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
