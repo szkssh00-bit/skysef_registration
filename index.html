@@ -13,18 +13,16 @@ main{min-height:100vh;padding:8px}
 
 .layout{
   display:grid;
-  grid-template-columns:1.08fr 1fr .92fr;
-  grid-template-rows:minmax(0,1fr) minmax(0,1fr);
-  grid-template-areas:
-    "camera checkin"
-    "camera absent";
+  grid-template-columns:minmax(460px,1.18fr) minmax(360px,1fr) minmax(320px,.86fr);
+  
+  
   gap:8px;
   height:calc(100vh - 16px);
 }
 
-.camera-card{grid-area:camera;display:flex;flex-direction:column;min-height:0}
-.checkin-card{grid-area:checkin;min-height:0}
-.absent-card{grid-area:absent;min-height:0}
+.camera-card{display:flex;flex-direction:column;min-height:0}
+.checkin-card{min-height:0}
+.absent-card{min-height:0}
 
 .card{
   background:#fff;
@@ -195,7 +193,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
   gap:12px;
   margin-top:20px;
 }
-.participant-button{
+.participant-button{appearance:none;width:100%;text-align:left;cursor:pointer;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -241,6 +239,27 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+@media(min-width:1101px){
+  #staff-view .layout{
+    display:grid!important;
+    grid-template-columns:minmax(460px,1.18fr) minmax(360px,1fr) minmax(320px,.86fr)!important;
+    grid-template-rows:1fr!important;
+    grid-template-areas:none!important;
+    gap:8px!important;
+    height:calc(100vh - 16px)!important;
+  }
+  #staff-view .camera-card,
+  #staff-view .checkin-card,
+  #staff-view .absent-card{
+    grid-area:auto!important;
+    min-width:0!important;
+    height:100%!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -273,7 +292,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name<input id="correction-current" readonly=""></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbyNrEEBG5lo2IQAbl__iEpDaqRFUaREcPHJQfHaD6ola_UBSHXmPU0zbOiQE0euY9BC/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbwtesaHJlzo8QYRQdA18nMNs85AT18yIfYJ-oN-CPTV5EFf4qSwb5NBnOwIf6sFgEKz/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -330,6 +349,7 @@ function hasReachedFinalParticipationDate(finalDate){
 function buildParticipantLinks(p){
   const finalDate=getFinalParticipationDate(p);
   const finalDayReached=hasReachedFinalParticipationDate(finalDate);
+  const questionnaireDone=String(p["Questionnaire Flag"]||"").trim()==="1";
 
   let html='<div class="participant-links">';
 
@@ -338,27 +358,68 @@ function buildParticipantLinks(p){
         '<span>Open →</span>'+
         '</a>';
 
-  html+='<a class="participant-button secondary-button '+(finalDayReached?'':'disabled')+'" '+
-        'href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">'+
-        '<span>After joining SKYSEF: Questionnaire<small>'+
-        (finalDayReached
-          ?'Available now. Complete all questions to obtain your certificate.'
-          :'Available on your final participating day'+(finalDate?' ('+finalDate+')':'')+'.')+
-        '</small></span>'+
-        '<span>Start →</span>'+
-        '</a>';
+  if(finalDayReached){
+    html+='<button type="button" class="participant-button secondary-button" onclick="openQuestionnaire()">'+
+          '<span>After joining SKYSEF: Questionnaire<small>'+
+          (questionnaireDone
+            ?'Questionnaire access has already been recorded.'
+            :'Your final participating day has arrived. Click to start the questionnaire.')+
+          '</small></span>'+
+          '<span>Start →</span>'+
+          '</button>';
+  }else{
+    html+='<button type="button" class="participant-button secondary-button disabled" disabled>'+
+          '<span>After joining SKYSEF: Questionnaire<small>'+
+          'Available on your final participating day'+(finalDate?' ('+finalDate+')':'')+'.'+
+          '</small></span>'+
+          '<span>Locked</span>'+
+          '</button>';
+  }
 
   html+='</div>';
 
   if(finalDate){
     html+='<div class="final-day-note">Final participating day: '+escapeHtml(finalDate)+
           (finalDayReached
-            ?' — Questionnaire is available now. After completing all questions, you can download your certificate.'
+            ?' — Questionnaire is available now.'
             :' — Questionnaire opens on this day.')+
           '</div>';
   }
 
   return html;
+}
+
+
+async function openQuestionnaire(){
+  if(!currentParticipantId){
+    alert("Participant ID is missing.");
+    return;
+  }
+
+  const questionnaireUrl="https://szkssh00-bit.github.io/skysef_certification/";
+
+  try{
+    const data=await gasPost({
+      api:"questionnaireOpened",
+      id:currentParticipantId
+    });
+
+    if(!data.ok){
+      throw new Error(data.error||"Failed to record Questionnaire Flag.");
+    }
+
+    const local=participantMap.get(normalizeId(currentParticipantId));
+    if(local){
+      local["Questionnaire Flag"]=1;
+    }
+
+    window.location.href=questionnaireUrl;
+  }catch(error){
+    alert(
+      "The questionnaire could not be opened because the access record could not be saved.\n"+
+      (error.message||String(error))
+    );
+  }
 }
 
 function openCorrection(){const p=participantMap.get(normalizeId(currentParticipantId));showView("correction-view");document.getElementById("correction-id").value=currentParticipantId;document.getElementById("correction-current").value=p?p.Name:"";document.getElementById("correction-new").value="";document.getElementById("correction-note").value="";document.getElementById("correction-status").textContent="";}
