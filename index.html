@@ -188,6 +188,59 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 .participant-link.disabled{opacity:.45;pointer-events:none}
 .final-day-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef5fb;color:#35516c;font-weight:700}
 </style>
+
+<style>
+.participant-links{
+  display:grid;
+  gap:12px;
+  margin-top:20px;
+}
+.participant-button{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-decoration:none;
+  border:2px solid #0b1f3a;
+  border-radius:14px;
+  padding:15px 18px;
+  background:#0b1f3a;
+  color:#fff;
+  font-family:"Arial Black",Arial,sans-serif;
+  font-size:1rem;
+  box-shadow:0 4px 10px rgba(12,31,58,.12);
+  transition:transform .12s ease,box-shadow .12s ease,opacity .12s ease;
+}
+.participant-button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(12,31,58,.16);
+}
+.participant-button.secondary-button{
+  background:#fff;
+  color:#0b1f3a;
+}
+.participant-button small{
+  display:block;
+  font-family:Arial,"Hiragino Sans",Meiryo,sans-serif;
+  font-size:.78rem;
+  font-weight:700;
+  opacity:.84;
+}
+.participant-button.disabled{
+  opacity:.42;
+  pointer-events:none;
+  filter:grayscale(.15);
+}
+.final-day-note{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#eef5fb;
+  color:#35516c;
+  font-weight:700;
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -220,7 +273,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name<input id="correction-current" readonly=""></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbwSEP09oK2PGxcxuuljiLpPw9UKxCNB82WHuq2WPyL48Z3bAcmf1jiSeT8ZxISmX2E1/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbyNrEEBG5lo2IQAbl__iEpDaqRFUaREcPHJQfHaD6ola_UBSHXmPU0zbOiQE0euY9BC/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -255,6 +308,7 @@ async function loadParticipantInformation(id) {
     }
 }
 
+
 function getFinalParticipationDate(p){
   const dates=["8/2","8/3","8/4","8/5"];
   let last="";
@@ -275,17 +329,35 @@ function hasReachedFinalParticipationDate(finalDate){
 
 function buildParticipantLinks(p){
   const finalDate=getFinalParticipationDate(p);
-  const ready=hasReachedFinalParticipationDate(finalDate);
+  const finalDayReached=hasReachedFinalParticipationDate(finalDate);
 
   let html='<div class="participant-links">';
-  html+='<a class="participant-link primary-link" href="https://szkssh00-bit.github.io/SKYSEF/" target="_blank" rel="noopener">SKYSEF Website (password: skysef)<small>Open the SKYSEF website.</small></a>';
-  html+='<a class="participant-link" href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">After joining SKYSEF: Questionnaire<small>Complete the questionnaire after participation.</small></a>';
-  html+='<a class="participant-link '+(ready?'':'disabled')+'" href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">Get Certificate<small>Available from your final participating day'+(finalDate?' ('+finalDate+')':'')+'.</small></a>';
+
+  html+='<a class="participant-button" href="https://szkssh00-bit.github.io/SKYSEF/" target="_blank" rel="noopener">'+
+        '<span>SKYSEF Website<small>Password: skysef</small></span>'+
+        '<span>Open →</span>'+
+        '</a>';
+
+  html+='<a class="participant-button secondary-button '+(finalDayReached?'':'disabled')+'" '+
+        'href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">'+
+        '<span>After joining SKYSEF: Questionnaire<small>'+
+        (finalDayReached
+          ?'Available now. Complete all questions to obtain your certificate.'
+          :'Available on your final participating day'+(finalDate?' ('+finalDate+')':'')+'.')+
+        '</small></span>'+
+        '<span>Start →</span>'+
+        '</a>';
+
   html+='</div>';
 
   if(finalDate){
-    html+='<div class="final-day-note">Final participating day: '+escapeHtml(finalDate)+(ready?' — Certificate access is available.':' — Certificate access opens on that day.')+'</div>';
+    html+='<div class="final-day-note">Final participating day: '+escapeHtml(finalDate)+
+          (finalDayReached
+            ?' — Questionnaire is available now. After completing all questions, you can download your certificate.'
+            :' — Questionnaire opens on this day.')+
+          '</div>';
   }
+
   return html;
 }
 
