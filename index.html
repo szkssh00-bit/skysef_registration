@@ -13,7 +13,7 @@ main{min-height:100vh;padding:8px}
 
 .layout{
   display:grid;
-  grid-template-columns:minmax(460px,1.05fr) minmax(520px,1.25fr);
+  grid-template-columns:1.08fr 1fr .92fr;
   grid-template-rows:minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:
     "camera checkin"
@@ -166,6 +166,27 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
   .qr-wrap{aspect-ratio:4/3}
   .info-table th,.info-table td{display:block;width:100%}
 }
+
+.latest.warning{
+  background:#fffaf0;
+  border:1px solid #e5d3a6;
+  box-shadow:none;
+}
+.latest.warning .status{
+  margin-top:8px;
+  padding:6px 0 0;
+  background:transparent;
+  border-top:1px solid #e5d3a6;
+  border-radius:0;
+  color:#71530f;
+}
+.participant-links{display:grid;gap:10px;margin-top:18px}
+.participant-link{display:block;text-decoration:none;border:1px solid #c8d6e4;border-radius:12px;padding:13px 15px;background:#f8fbfe;color:#0b1f3a;font-weight:900}
+.participant-link small{display:block;margin-top:3px;color:#5f6f82;font-weight:700}
+.participant-link.primary-link{background:#0b1f3a;color:#fff}
+.participant-link.primary-link small{color:#d8e7f6}
+.participant-link.disabled{opacity:.45;pointer-events:none}
+.final-day-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef5fb;color:#35516c;font-weight:700}
 </style>
 </head>
 <body>
@@ -220,22 +241,54 @@ async function loadParticipantInformation(id) {
 
         box.innerHTML = '<div class="name-banner"><div class="label">Name</div><div class="name">' + escapeHtml(p.Name) + '</div></div>' +
             '<table class="info-table"><tr><th>Region</th><td>' + escapeHtml(p.Region) + '</td></tr>' +
-            '<tr><th>School</th><td>' + escapeHtml(p.School) + '</td></tr>' +
+            '<tr><th>Organization</th><td>' + escapeHtml(p.Organization) + '</td></tr>' +
             '<tr><th>Name</th><td>' + escapeHtml(p.Name) + '</td></tr>' +
             '<tr><th>Oral No.</th><td>' + escapeHtml(p["Oral No."]) + '</td></tr>' +
             '<tr><th>Poster No.</th><td>' + escapeHtml(p["Poster No."]) + '</td></tr>' +
             '<tr><th>International Joint Project1 Group</th><td>' + escapeHtml(p["International Joint Project1 Group"]) + '</td></tr>' +
             '<tr><th>International Joint Project2 Group</th><td>' + escapeHtml(p["International Joint Project2 Group"]) + '</td></tr></table>' +
-            '<div class="form-actions">' +
-            '<button class="primary" onclick="openCorrection()">Correct My Name</button>' +
-            '<button class="secondary" onclick="window.open(\'https://szkssh00-bit.github.io/SKYSEF/\', \'_blank\')">View SKYSEF Website</button>' +
-            '</div>' + 
+            buildParticipantLinks(p) + 
             (p["Correction Status"] ? '<div class="status done">Correction status: ' + escapeHtml(p["Correction Status"]) + '</div>' : '');
             
     } catch (e) {
         box.innerHTML = '<div class="status error">' + escapeHtml(e.message || String(e)) + '</div>';
     }
 }
+
+function getFinalParticipationDate(p){
+  const dates=["8/2","8/3","8/4","8/5"];
+  let last="";
+  dates.forEach(function(date){
+    if(String(p["Flag "+date]||"").trim()==="1"){
+      last=date;
+    }
+  });
+  return last;
+}
+
+function hasReachedFinalParticipationDate(finalDate){
+  if(!finalDate)return false;
+  const parts=finalDate.split("/");
+  const target=new Date(2026,Number(parts[0])-1,Number(parts[1]),0,0,0);
+  return new Date()>=target;
+}
+
+function buildParticipantLinks(p){
+  const finalDate=getFinalParticipationDate(p);
+  const ready=hasReachedFinalParticipationDate(finalDate);
+
+  let html='<div class="participant-links">';
+  html+='<a class="participant-link primary-link" href="https://szkssh00-bit.github.io/SKYSEF/" target="_blank" rel="noopener">SKYSEF Website (password: skysef)<small>Open the SKYSEF website.</small></a>';
+  html+='<a class="participant-link" href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">After joining SKYSEF: Questionnaire<small>Complete the questionnaire after participation.</small></a>';
+  html+='<a class="participant-link '+(ready?'':'disabled')+'" href="https://szkssh00-bit.github.io/skysef_certification/" target="_blank" rel="noopener">Get Certificate<small>Available from your final participating day'+(finalDate?' ('+finalDate+')':'')+'.</small></a>';
+  html+='</div>';
+
+  if(finalDate){
+    html+='<div class="final-day-note">Final participating day: '+escapeHtml(finalDate)+(ready?' — Certificate access is available.':' — Certificate access opens on that day.')+'</div>';
+  }
+  return html;
+}
+
 function openCorrection(){const p=participantMap.get(normalizeId(currentParticipantId));showView("correction-view");document.getElementById("correction-id").value=currentParticipantId;document.getElementById("correction-current").value=p?p.Name:"";document.getElementById("correction-new").value="";document.getElementById("correction-note").value="";document.getElementById("correction-status").textContent="";}
 function backToParticipant(){showView("participant-view");}
 async function submitCorrection(){const id=document.getElementById("correction-id").value,correctedName=document.getElementById("correction-new").value.trim(),note=document.getElementById("correction-note").value.trim(),status=document.getElementById("correction-status");if(!correctedName){status.className="status error";status.textContent="Correct Name is required.";return;}status.className="status syncing";status.textContent="Submitting correction...";try{const d=await gasPost({api:"correctName",id,correctedName,note});if(!d.ok)throw new Error(d.error||"Correction failed.");status.className="status done";status.textContent="Name has been corrected.";await loadParticipantInformation(id);showView("participant-view");}catch(e){status.className="status error";status.textContent=e.message||String(e);}}
@@ -250,16 +303,16 @@ function plannedParticipants(date){return participants.filter(p=>flagValue(p,dat
 function checkedParticipants(date){return plannedParticipants(date).filter(p=>Boolean(attendanceValue(p,date))).sort((a,b)=>String(attendanceValue(b,date)).localeCompare(String(attendanceValue(a,date))));}
 function absentParticipants(date){return plannedParticipants(date).filter(p=>!attendanceValue(p,date)).sort((a,b)=>String(a.Name||"").localeCompare(String(b.Name||"")));}
 function renderSelectedDate(){const planned=plannedParticipants(selectedDate),checked=checkedParticipants(selectedDate),absent=absentParticipants(selectedDate);document.getElementById("planned-count").textContent=planned.length;document.getElementById("checked-count").textContent=checked.length;document.getElementById("queue-count").textContent=syncQueue.length;renderAttendanceList(checked);renderAbsentList(absent);}
-function renderAttendanceList(list){const box=document.getElementById("attendance-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><small>No check-ins yet.</small></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.School)+"</span><small>ID: "+escapeHtml(p.ID)+" / "+escapeHtml(attendanceValue(p,selectedDate))+"</small>";box.appendChild(i);});}
-function renderAbsentList(list){const box=document.getElementById("absent-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><strong>All planned participants checked in.</strong></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.School)+"</span><small>ID: "+escapeHtml(p.ID)+"</small>";box.appendChild(i);});}
+function renderAttendanceList(list){const box=document.getElementById("attendance-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><small>No check-ins yet.</small></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.Organization)+"</span><small>ID: "+escapeHtml(p.ID)+" / "+escapeHtml(attendanceValue(p,selectedDate))+"</small>";box.appendChild(i);});}
+function renderAbsentList(list){const box=document.getElementById("absent-list");box.innerHTML="";if(!list.length){box.innerHTML='<div class="item"><strong>All planned participants checked in.</strong></div>';return;}list.forEach(p=>{const i=document.createElement("div");i.className="item";i.innerHTML="<strong>"+escapeHtml(p.Name)+"</strong><span>"+escapeHtml(p.Organization)+"</span><small>ID: "+escapeHtml(p.ID)+"</small>";box.appendChild(i);});}
 async function startDefaultCamera(){const st=document.getElementById("scan-status");if(!window.isSecureContext){setScanStatus("error","Camera requires HTTPS or localhost.");return;}if(!window.Html5Qrcode){setScanStatus("error","html5-qrcode could not be loaded.");return;}setScanStatus("syncing","Starting default camera...");try{if(!qr)qr=new Html5Qrcode("reader",{verbose:false});await qr.start({facingMode:"environment"},getQrConfig(),onScanSuccess,function(){});cameraRunning=true;setScanStatus("done","Camera ready.");await populateCameraListAfterPermission();}catch(firstError){try{await qr.start({facingMode:"user"},getQrConfig(),onScanSuccess,function(){});cameraRunning=true;setScanStatus("done","Camera ready.");await populateCameraListAfterPermission();}catch(secondError){cameraRunning=false;setScanStatus("error","Camera start failed. Check Chrome camera permission.\\n"+(secondError.message||String(secondError)));}}}
 function getQrConfig(){return{fps:30,qrbox:(w,h)=>{const size=Math.floor(Math.min(w,h)*0.90);return{width:size,height:size};},aspectRatio:1.333,rememberLastUsedCamera:true,experimentalFeatures:{useBarCodeDetectorIfSupported:true}};}
 async function populateCameraListAfterPermission(){const s=document.getElementById("camera-select");try{cameras=await Html5Qrcode.getCameras();s.innerHTML="";if(!cameras.length){s.innerHTML='<option value="">Default camera</option>';return;}cameras.forEach((c,n)=>{const o=document.createElement("option");o.value=c.id;o.textContent=(n+1)+": "+(c.label||("Camera "+(n+1)));s.appendChild(o);});const saved=localStorage.getItem("skysef_camera_id");if(saved&&cameras.some(c=>c.id===saved))s.value=saved;else if(cameras.length>1)s.selectedIndex=1;else s.selectedIndex=0;selectedCameraId=s.value;}catch(e){s.innerHTML='<option value="">Default camera</option>';}}
 async function startSelectedCamera(){if(!selectedCameraId){await startDefaultCamera();return;}setScanStatus("syncing","Switching camera...");try{if(!qr)qr=new Html5Qrcode("reader",{verbose:false});await qr.start({deviceId:{exact:selectedCameraId}},getQrConfig(),onScanSuccess,function(){});cameraRunning=true;setScanStatus("done","Camera ready.");}catch(e){cameraRunning=false;setScanStatus("error","Camera switch failed: "+(e.message||String(e)));}}
 function onScanSuccess(t){const id=extractId(t);if(id)processLocalCheckIn(id);}
 function processLocalCheckIn(id){const now=Date.now(),n=normalizeId(id);if(!n||processing)return;if(n===lastId&&now-lastTime<900)return;lastId=n;lastTime=now;processing=true;const p=participantMap.get(n);if(!p){showLatestError("ID not found",n);setScanStatus("error","QR read succeeded, but the ID is not in the local participant list.");processing=false;return;}if(!flagValue(p,selectedDate)){showLatestError("Not scheduled for "+selectedDate,n,p);setScanStatus("error","This participant is not scheduled for the selected date.");processing=false;return;}const existing=attendanceValue(p,selectedDate);if(existing){showLatest(p,true);setScanStatus("done","Already checked in. Ready for next scan.");processing=false;return;}const localTime=createLocalTimestamp();setAttendanceValue(p,selectedDate,localTime);addQueueEntry({id:n,date:selectedDate,localTime});showLatest(p,false);renderSelectedDate();strongFeedback();setScanStatus("local","Check-in complete on this screen.\nAttendance data will be sent to GAS in a background batch.");scheduleFlush(1800);setTimeout(function(){processing=false;setScanStatus("done","Ready for next scan.");},450);}
-function showLatest(p,already){const c=document.getElementById("latest-card");c.className=already?"latest warning":"latest success";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>ID: <b>'+escapeHtml(p.ID)+'</b></span><span>Date: <b>'+escapeHtml(selectedDate)+'</b></span><span>Oral: <b>'+escapeHtml(p["Oral No."]||"")+'</b></span><span>Poster: <b>'+escapeHtml(p["Poster No."]||"")+'</b></span><span>WP: <b>'+escapeHtml(p["Welcome Party Group"]||"")+'</b></span><span>IJP1: <b>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</b></span><span>IJP2: <b>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</b></span></div><div class="status '+(already?"syncing":"done")+'">'+(already?"Already checked in.":"Check-in completed.")+'</div>';}
-function showLatestError(m,id,p){const c=document.getElementById("latest-card");c.className="latest error";c.innerHTML='<div class="latest-name">'+escapeHtml(m)+'</div>'+(p?'<div>'+escapeHtml(p.Name)+' / '+escapeHtml(p.School)+'</div>':'')+'<small>ID: '+escapeHtml(id)+'</small>';}
+function showLatest(p,already){const c=document.getElementById("latest-card");c.className=already?"latest warning":"latest success";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.Organization)+'</div><div class="latest-grid"><span>ID: <b>'+escapeHtml(p.ID)+'</b></span><span>Date: <b>'+escapeHtml(selectedDate)+'</b></span><span>Oral: <b>'+escapeHtml(p["Oral No."]||"")+'</b></span><span>Poster: <b>'+escapeHtml(p["Poster No."]||"")+'</b></span><span>WP: <b>'+escapeHtml(p["Welcome Party Group"]||"")+'</b></span><span>IJP1: <b>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</b></span><span>IJP2: <b>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</b></span></div><div class="status '+(already?"syncing":"done")+'">'+(already?"Already checked in.":"Check-in completed.")+'</div>';}
+function showLatestError(m,id,p){const c=document.getElementById("latest-card");c.className="latest error";c.innerHTML='<div class="latest-name">'+escapeHtml(m)+'</div>'+(p?'<div>'+escapeHtml(p.Name)+' / '+escapeHtml(p.Organization)+'</div>':'')+'<small>ID: '+escapeHtml(id)+'</small>';}
 function addQueueEntry(e){const dup=syncQueue.some(i=>i.id===e.id&&i.date===e.date);if(!dup){syncQueue.push(e);persistQueue();}document.getElementById("queue-count").textContent=syncQueue.length;}
 function scheduleFlush(delay){if(flushTimer)clearTimeout(flushTimer);flushTimer=setTimeout(flushQueue,delay);}
 async function flushQueue(){if(syncInFlight||!navigator.onLine||syncQueue.length===0)return;syncInFlight=true;const batch=syncQueue.slice(0,25);setSyncStatus("syncing","Sending "+batch.length+" queued check-in(s) to GAS...");try{const d=await gasPost({api:"batchCheckin",entries:batch});if(!d.ok)throw new Error(d.error||"Batch check-in failed.");const keys=new Set(batch.map(i=>i.id+"|"+i.date));syncQueue=syncQueue.filter(i=>!keys.has(i.id+"|"+i.date));persistQueue();if(d.updatedParticipants){d.updatedParticipants.forEach(u=>{const l=participantMap.get(normalizeId(u.ID));if(l)Object.assign(l,u);});}renderSelectedDate();setSyncStatus("done","GAS synchronized. Remaining queue: "+syncQueue.length);}catch(e){setSyncStatus("error","Local check-in is retained. GAS synchronization will retry.");}finally{syncInFlight=false;if(syncQueue.length>0)scheduleFlush(2500);}}
