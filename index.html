@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SKYSEF Check in System</title>
+<title>SKYSEF 2026 Check in System</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -199,7 +199,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name<input id="correction-current" readonly=""></label><label>Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbzoYAKAoraGUbQCorU1bDr-eIEzJfko2ekNwfW4BDL18fyUek1PHnfr0wsC8Thu60h5/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbwSEP09oK2PGxcxuuljiLpPw9UKxCNB82WHuq2WPyL48Z3bAcmf1jiSeT8ZxISmX2E1/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -224,8 +224,8 @@ async function loadParticipantInformation(id) {
             '<tr><th>Name</th><td>' + escapeHtml(p.Name) + '</td></tr>' +
             '<tr><th>Oral No.</th><td>' + escapeHtml(p["Oral No."]) + '</td></tr>' +
             '<tr><th>Poster No.</th><td>' + escapeHtml(p["Poster No."]) + '</td></tr>' +
-            '<tr><th>IJP1 Group</th><td>' + escapeHtml(p["IJP1 Group"]) + '</td></tr>' +
-            '<tr><th>IJP2 Group</th><td>' + escapeHtml(p["IJP2 Group"]) + '</td></tr></table>' +
+            '<tr><th>International Joint Project1 Group</th><td>' + escapeHtml(p["International Joint Project1 Group"]) + '</td></tr>' +
+            '<tr><th>International Joint Project2 Group</th><td>' + escapeHtml(p["International Joint Project2 Group"]) + '</td></tr></table>' +
             '<div class="form-actions">' +
             '<button class="primary" onclick="openCorrection()">Correct My Name</button>' +
             '<button class="secondary" onclick="window.open(\'https://szkssh00-bit.github.io/SKYSEF/\', \'_blank\')">View SKYSEF Website</button>' +
@@ -258,7 +258,7 @@ async function populateCameraListAfterPermission(){const s=document.getElementBy
 async function startSelectedCamera(){if(!selectedCameraId){await startDefaultCamera();return;}setScanStatus("syncing","Switching camera...");try{if(!qr)qr=new Html5Qrcode("reader",{verbose:false});await qr.start({deviceId:{exact:selectedCameraId}},getQrConfig(),onScanSuccess,function(){});cameraRunning=true;setScanStatus("done","Camera ready.");}catch(e){cameraRunning=false;setScanStatus("error","Camera switch failed: "+(e.message||String(e)));}}
 function onScanSuccess(t){const id=extractId(t);if(id)processLocalCheckIn(id);}
 function processLocalCheckIn(id){const now=Date.now(),n=normalizeId(id);if(!n||processing)return;if(n===lastId&&now-lastTime<900)return;lastId=n;lastTime=now;processing=true;const p=participantMap.get(n);if(!p){showLatestError("ID not found",n);setScanStatus("error","QR read succeeded, but the ID is not in the local participant list.");processing=false;return;}if(!flagValue(p,selectedDate)){showLatestError("Not scheduled for "+selectedDate,n,p);setScanStatus("error","This participant is not scheduled for the selected date.");processing=false;return;}const existing=attendanceValue(p,selectedDate);if(existing){showLatest(p,true);setScanStatus("done","Already checked in. Ready for next scan.");processing=false;return;}const localTime=createLocalTimestamp();setAttendanceValue(p,selectedDate,localTime);addQueueEntry({id:n,date:selectedDate,localTime});showLatest(p,false);renderSelectedDate();strongFeedback();setScanStatus("local","Check-in complete on this screen.\nAttendance data will be sent to GAS in a background batch.");scheduleFlush(1800);setTimeout(function(){processing=false;setScanStatus("done","Ready for next scan.");},450);}
-function showLatest(p,already){const c=document.getElementById("latest-card");c.className=already?"latest warning":"latest success";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>ID: <b>'+escapeHtml(p.ID)+'</b></span><span>Date: <b>'+escapeHtml(selectedDate)+'</b></span><span>Oral: <b>'+escapeHtml(p["Oral No."]||"")+'</b></span><span>Poster: <b>'+escapeHtml(p["Poster No."]||"")+'</b></span><span>IJP1: <b>'+escapeHtml(p["IJP1 Group"]||"")+'</b></span><span>IJP2: <b>'+escapeHtml(p["IJP2 Group"]||"")+'</b></span></div><div class="status '+(already?"syncing":"done")+'">'+(already?"Already checked in.":"Check-in completed.")+'</div>';}
+function showLatest(p,already){const c=document.getElementById("latest-card");c.className=already?"latest warning":"latest success";c.innerHTML='<div class="latest-name">'+escapeHtml(p.Name)+'</div><div>'+escapeHtml(p.School)+'</div><div class="latest-grid"><span>ID: <b>'+escapeHtml(p.ID)+'</b></span><span>Date: <b>'+escapeHtml(selectedDate)+'</b></span><span>Oral: <b>'+escapeHtml(p["Oral No."]||"")+'</b></span><span>Poster: <b>'+escapeHtml(p["Poster No."]||"")+'</b></span><span>WP: <b>'+escapeHtml(p["Welcome Party Group"]||"")+'</b></span><span>IJP1: <b>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</b></span><span>IJP2: <b>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</b></span></div><div class="status '+(already?"syncing":"done")+'">'+(already?"Already checked in.":"Check-in completed.")+'</div>';}
 function showLatestError(m,id,p){const c=document.getElementById("latest-card");c.className="latest error";c.innerHTML='<div class="latest-name">'+escapeHtml(m)+'</div>'+(p?'<div>'+escapeHtml(p.Name)+' / '+escapeHtml(p.School)+'</div>':'')+'<small>ID: '+escapeHtml(id)+'</small>';}
 function addQueueEntry(e){const dup=syncQueue.some(i=>i.id===e.id&&i.date===e.date);if(!dup){syncQueue.push(e);persistQueue();}document.getElementById("queue-count").textContent=syncQueue.length;}
 function scheduleFlush(delay){if(flushTimer)clearTimeout(flushTimer);flushTimer=setTimeout(flushQueue,delay);}
