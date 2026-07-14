@@ -336,10 +336,11 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 </section>
 <section class="card checkin-card">
   <h2 class="title-black">Check-in Information</h2>
-  <div id="latest-card" class="latest warning"><div class="latest-name">SKYSEF Member</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-xxx</b></span><span>Date: <b>xxx/xxx</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>99</b></span></div><div class="status syncing">Already checked in.</div></div>
-  <div class="metrics"><div class="metric"><b id="planned-count">0</b><span>Planned</span></div><div class="metric"><b id="checked-count">0</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
+  <div id="latest-card" class="latest warning"><div class="latest-name">SKYSEF Member</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-xxx</b></span><span>Date: <b>xxx</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>99</b></span></div><div class="status syncing">Already checked in.</div></div>
+  <div class="metrics"><div class="metric"><b id="planned-count">xxx</b><span>Planned</span></div><div class="metric"><b id="checked-count">3</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
   <div id="sync-status" class="status done">Master list synchronized.</div>
   <div class="subhead">Attendance List</div>
+  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>xxxx</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-001 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
 </section>
 <section class="card absent-card">
   <h2 class="title-black">Not Checked-in Today</h2>
@@ -351,7 +352,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbxnrydr3fwzJ_Rb9sQuQWeU-cGmqs90FmCr4JBlsWayk2xccDgGL9s0OjamrVTjB6zb/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbwa-bV47Y6Z-aUx3mzbR-YYCSuzoB9Mdm150cqWgv7Tq_BV6KE4pZDvRXkEtcUGdynR/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -373,7 +374,7 @@ async function loadParticipantInformation(id) {
         box.innerHTML = '<div class="name-banner"><div class="label">Name</div><div class="name">' + escapeHtml(p.Name) + '</div></div>' +
             '<table class="info-table"><tr><th>Region</th><td>' + escapeHtml(p.Region) + '</td></tr>' +
             '<tr><th>Organization</th><td>' + escapeHtml(p.Organization) + '</td></tr>' +
-            '<tr><th>Name</th><td>' + escapeHtml(p.Name) + '</td></tr>' +
+            
             '<tr><th>Oral No.</th><td>' + escapeHtml(p["Oral No."]) + '</td></tr>' +
             '<tr><th>Poster No.</th><td>' + escapeHtml(p["Poster No."]) + '</td></tr>' +
             '<tr><th>International Joint Project1 Group</th><td>' + escapeHtml(p["International Joint Project1 Group"]) + '</td></tr>' +
@@ -540,7 +541,7 @@ async function submitCorrection(){
 
 function bindEvents(){document.getElementById("event-date").addEventListener("change",function(e){selectedDate=e.target.value;renderSelectedDate();});document.getElementById("camera-select").addEventListener("change",async function(e){selectedCameraId=e.target.value;if(selectedCameraId)localStorage.setItem("skysef_camera_id",selectedCameraId);if(qr&&cameraRunning){try{await qr.stop();}catch(_){}cameraRunning=false;}await startSelectedCamera();});}
 function detectInitialDate(){const p=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(new Date());return DATE_CONFIG[p]?p:"8/2";}
-async function loadMasterList(){setSyncStatus("syncing","Loading participant list...");try{const d=await gasGet({api:"master"});if(!d.ok)throw new Error(d.error||"Master API error.");participants=d.participants||[];participantMap=new Map();participants.forEach(p=>participantMap.set(normalizeId(p.ID),p));applyQueuedItemsToLocalData();renderSelectedDate();setSyncStatus("done","Participant list ready");}catch(e){setSyncStatus("error","Participant list load failed: "+(e.message||String(e)));}}
+async function loadMasterList(){setSyncStatus("syncing","Loading participant list...");try{const d=await gasGet({api:"master"});if(!d.ok)throw new Error(d.error||"Master API error.");participants=d.participants||[];participantMap=new Map();participants.forEach(p=>participantMap.set(normalizeId(p.ID),p));applyQueuedItemsToLocalData();renderSelectedDate();setSyncStatus("done","Participant list ready");}catch(e){setSyncStatus("error","Participant list load failed: "+(e.message||String(e))+"\nGAS: "+GAS_URL);}}
 function applyQueuedItemsToLocalData(){syncQueue.forEach(e=>applyLocalAttendance(e.id,e.date,e.localTime));}
 function flagValue(p,date){return String(p[DATE_CONFIG[date].flag]??"").trim()==="1";}
 function attendanceValue(p,date){return p[DATE_CONFIG[date].attendance]||"";}
@@ -573,8 +574,97 @@ function extractId(v){try{return new URL(v).searchParams.get("id")||"";}catch(_)
 function normalizeId(v){return String(v||"").trim();}
 function setScanStatus(t,m){const e=document.getElementById("scan-status");e.className="status "+t;e.textContent=m;}
 function setSyncStatus(t,m){const e=document.getElementById("sync-status");e.className="status "+t;e.textContent=m;}
-async function gasGet(params){const u=new URL(GAS_URL);Object.keys(params).forEach(k=>u.searchParams.set(k,params[k]));u.searchParams.set("t",Date.now());const r=await fetch(u.toString(),{method:"GET",cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
-async function gasPost(payload){const r=await fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload),cache:"no-store"});if(!r.ok)throw new Error("GAS response error: "+r.status);return await r.json();}
+
+let jsonpSequence=0;
+
+function gasJsonp(params,timeoutMs){
+  return new Promise(function(resolve,reject){
+    const callbackName="__skysef_jsonp_"+Date.now()+"_"+(++jsonpSequence);
+    const script=document.createElement("script");
+    const url=new URL(GAS_URL);
+    const timeout=Number(timeoutMs||15000);
+    let finished=false;
+
+    Object.keys(params||{}).forEach(function(key){
+      const value=params[key];
+      if(value!==undefined&&value!==null){
+        url.searchParams.set(
+          key,
+          typeof value==="string" ? value : JSON.stringify(value)
+        );
+      }
+    });
+
+    url.searchParams.set("callback",callbackName);
+    url.searchParams.set("_t",Date.now());
+
+    function cleanup(){
+      if(script.parentNode){
+        script.parentNode.removeChild(script);
+      }
+      try{
+        delete window[callbackName];
+      }catch(error){
+        window[callbackName]=undefined;
+      }
+    }
+
+    const timer=setTimeout(function(){
+      if(finished)return;
+      finished=true;
+      cleanup();
+      reject(new Error("GAS JSONP timeout."));
+    },timeout);
+
+    window[callbackName]=function(data){
+      if(finished)return;
+      finished=true;
+      clearTimeout(timer);
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror=function(){
+      if(finished)return;
+      finished=true;
+      clearTimeout(timer);
+      cleanup();
+      reject(new Error("GAS script request failed."));
+    };
+
+    script.src=url.toString();
+    document.head.appendChild(script);
+  });
+}
+
+async function gasGet(params){
+  return await gasJsonp(params,15000);
+}
+
+async function gasPost(payload){
+  const params={
+    api:payload.api||""
+  };
+
+  if(payload.id!==undefined){
+    params.id=payload.id;
+  }
+
+  if(payload.correctedName!==undefined){
+    params.correctedName=payload.correctedName;
+  }
+
+  if(payload.note!==undefined){
+    params.note=payload.note;
+  }
+
+  if(payload.entries!==undefined){
+    params.entries=payload.entries;
+  }
+
+  return await gasJsonp(params,20000);
+}
+
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 </script>
 
