@@ -320,6 +320,31 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
   aspect-ratio:auto!important;
 }
 </style>
+
+<style>
+.participant-announcement{
+  margin:14px 0;
+  border:2px solid #0b1f3a;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.participant-announcement-title{
+  padding:9px 14px;
+  background:#0b1f3a;
+  color:#fff;
+  font-family:"Arial Black",Arial,sans-serif;
+  font-size:1rem;
+}
+.participant-announcement-body{
+  padding:14px;
+  white-space:pre-wrap;
+  font-weight:700;
+  color:#172033;
+  min-height:52px;
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -336,11 +361,11 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 </section>
 <section class="card checkin-card">
   <h2 class="title-black">Check-in Information</h2>
-  <div id="latest-card" class="latest warning"><div class="latest-name">SKYSEF Member</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-xxx</b></span><span>Date: <b>xxx</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>99</b></span></div><div class="status syncing">Already checked in.</div></div>
-  <div class="metrics"><div class="metric"><b id="planned-count">xxx</b><span>Planned</span></div><div class="metric"><b id="checked-count">3</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
+  <div id="latest-card" class="latest warning"><div class="latest-name">ゆうた</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-001</b></span><span>Date: <b>8/2</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>88</b></span></div><div class="status syncing">Already checked in.</div></div>
+  <div class="metrics"><div class="metric"><b id="planned-count">9</b><span>Planned</span></div><div class="metric"><b id="checked-count">3</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
   <div id="sync-status" class="status done">Master list synchronized.</div>
   <div class="subhead">Attendance List</div>
-  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>xxxx</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-001 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
+  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>ゆうた</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-001 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
 </section>
 <section class="card absent-card">
   <h2 class="title-black">Not Checked-in Today</h2>
@@ -352,39 +377,66 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbwa-bV47Y6Z-aUx3mzbR-YYCSuzoB9Mdm150cqWgv7Tq_BV6KE4pZDvRXkEtcUGdynR/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbw8GMb-22YifrOWL6JBTcpOXgW6YGnqsY0L-S3Y-JHeU_G3skDRE7eNJ1vR6mDMEscd/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
 async function initPage(){const params=new URLSearchParams(location.search),mode=params.get("mode")||"",id=params.get("id")||"";if(mode==="staff"){showView("staff-view");await initStaff();return;}if(id){currentParticipantId=id;showView("participant-view");await loadParticipantInformation(id);return;}showView("participant-view");document.getElementById("participant-content").innerHTML='<div class="status error">Participant ID is missing.</div>';}
 function showView(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));document.getElementById(id).classList.add("active");}
 async function initStaff(){selectedDate=detectInitialDate();document.getElementById("event-date").value=selectedDate;restoreQueue();bindEvents();await Promise.allSettled([loadMasterList(),startDefaultCamera()]);scheduleFlush(1200);setInterval(backgroundRefresh,30000);window.addEventListener("online",function(){scheduleFlush(100);});}
-async function loadParticipantInformation(id) {
-    const box = document.getElementById("participant-content");
-    box.innerHTML = '<div class="status syncing">Loading participant information...</div>';
-    
-    try {
-        const d = await gasGet({ api: "participant", id });
-        if (!d.ok || !d.participant) throw new Error(d.error || "Participant not found.");
-        
-        const p = d.participant;
-        participantMap.set(normalizeId(p.ID), p);
-        currentParticipantId = String(p.ID || id);
+async function loadParticipantInformation(id){
+  const box=document.getElementById("participant-content");
 
-        box.innerHTML = '<div class="name-banner"><div class="label">Name</div><div class="name">' + escapeHtml(p.Name) + '</div></div>' +
-            '<table class="info-table"><tr><th>Region</th><td>' + escapeHtml(p.Region) + '</td></tr>' +
-            '<tr><th>Organization</th><td>' + escapeHtml(p.Organization) + '</td></tr>' +
-            
-            '<tr><th>Oral No.</th><td>' + escapeHtml(p["Oral No."]) + '</td></tr>' +
-            '<tr><th>Poster No.</th><td>' + escapeHtml(p["Poster No."]) + '</td></tr>' +
-            '<tr><th>International Joint Project1 Group</th><td>' + escapeHtml(p["International Joint Project1 Group"]) + '</td></tr>' +
-            '<tr><th>International Joint Project2 Group</th><td>' + escapeHtml(p["International Joint Project2 Group"]) + '</td></tr></table>' +
-            '<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>' + buildParticipantLinks(p) + 
-            (p["Correction Status"] ? '<div class="status done">Correction status: ' + escapeHtml(p["Correction Status"]) + '</div>' : '');
-            
-    } catch (e) {
-        box.innerHTML = '<div class="status error">' + escapeHtml(e.message || String(e)) + '</div>';
+  box.innerHTML=
+    '<div class="status syncing">Loading participant information...</div>';
+
+  try{
+    const d=await gasGet({
+      api:"participant",
+      id:id
+    });
+
+    if(!d.ok||!d.participant){
+      throw new Error(d.error||"Participant not found.");
     }
+
+    const p=d.participant;
+
+    participantMap.set(normalizeId(p.ID),p);
+    currentParticipantId=String(p.ID||id);
+
+    box.innerHTML=
+      '<div class="participant-announcement">'+
+        '<div class="participant-announcement-title">Announcement</div>'+
+        '<div class="participant-announcement-body">'+escapeHtml(p["Announcement"]||"")+'</div>'+
+      '</div>'+
+      '<div class="name-banner">'+
+        '<div class="label">Name</div>'+
+        '<div class="name">'+escapeHtml(p.Name)+'</div>'+
+      '</div>'+
+      '<table class="info-table">'+
+        '<tr><th>Organization</th><td>'+escapeHtml(p.Organization)+'</td></tr>'+
+        '<tr><th>Position</th><td>'+escapeHtml(p.Position||"")+'</td></tr>'+
+        '<tr><th>Welcome party No.</th><td>'+escapeHtml(p["Welcome Party Group"]||"")+'</td></tr>'+
+        '<tr><th>Oral No.</th><td>'+escapeHtml(p["Oral No."]||"")+'</td></tr>'+
+        '<tr><th>Poster No.</th><td>'+escapeHtml(p["Poster No."]||"")+'</td></tr>'+
+        '<tr><th>International Joint Project1 Group</th><td>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</td></tr>'+
+        '<tr><th>International Joint Project2 Group</th><td>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</td></tr>'+
+      '</table>'+
+      '<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>'+
+      buildParticipantLinks(p)+
+      (
+        p["Correction Status"]
+          ?'<div class="status done">Correction status: '+escapeHtml(p["Correction Status"])+'</div>'
+          :''
+      );
+
+  }catch(e){
+    box.innerHTML=
+      '<div class="status error">'+
+      escapeHtml(e.message||String(e))+
+      '</div>';
+  }
 }
 
 
@@ -413,37 +465,49 @@ function buildParticipantLinks(p){
 
   let html='<div class="participant-links">';
 
-  html+='<a class="participant-button" href="https://szkssh00-bit.github.io/SKYSEF/" target="_blank" rel="noopener">'+
-        '<span>SKYSEF Website<small>Password: skysef</small></span>'+
-        '<span>Open →</span>'+
-        '</a>';
+  html+=
+    '<a class="participant-button" href="https://szkssh00-bit.github.io/SKYSEF/" target="_blank" rel="noopener">'+
+      '<span>SKYSEF Website<small>Password: skysef</small></span>'+
+      '<span>Open →</span>'+
+    '</a>';
 
   if(finalDayReached){
-    html+='<button type="button" class="participant-button secondary-button" onclick="openQuestionnaire()">'+
-          '<span>After joining SKYSEF: Questionnaire<small>'+
-          (questionnaireDone
-            ?'Questionnaire access has already been recorded.'
-            :'Your final participating day has arrived. Click to start the questionnaire.')+
-          '</small></span>'+
-          '<span>Start →</span>'+
-          '</button>';
+    html+=
+      '<button type="button" class="participant-button secondary-button" onclick="openQuestionnaire()">'+
+        '<span>After joining SKYSEF: Questionnaire<small>'+
+          (
+            questionnaireDone
+              ?'Questionnaire access has already been recorded.'
+              :'Available on your final participating day. Click to start the questionnaire.'
+          )+
+        '</small></span>'+
+        '<span>Start →</span>'+
+      '</button>';
   }else{
-    html+='<button type="button" class="participant-button secondary-button disabled" disabled>'+
-          '<span>After joining SKYSEF: Questionnaire<small>'+
-          'Available on your final participating day'+(finalDate?' ('+finalDate+')':'')+'.'+
-          '</small></span>'+
-          '<span>Locked</span>'+
-          '</button>';
+    html+=
+      '<button type="button" class="participant-button secondary-button disabled" disabled>'+
+        '<span>After joining SKYSEF: Questionnaire<small>'+
+          'Available on your final participating day'+
+          (finalDate?' ('+finalDate+')':'')+
+          '.'+
+        '</small></span>'+
+        '<span>Locked</span>'+
+      '</button>';
   }
 
   html+='</div>';
 
   if(finalDate){
-    html+='<div class="final-day-note">Final participating day: '+escapeHtml(finalDate)+
-          (finalDayReached
-            ?' — Questionnaire is available now.'
-            :' — Questionnaire opens on this day.')+
-          '</div>';
+    html+=
+      '<div class="final-day-note">'+
+      'Final participating day: '+
+      escapeHtml(finalDate)+
+      (
+        finalDayReached
+          ?' — Questionnaire is available now.'
+          :' — Questionnaire opens on this day.'
+      )+
+      '</div>';
   }
 
   return html;
