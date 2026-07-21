@@ -345,6 +345,45 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+.review-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:16px;
+}
+.review-card{
+  border:1px solid #c8d6e4;
+  border-radius:14px;
+  overflow:hidden;
+  background:#f8fbfe;
+}
+.review-card h2{
+  margin:0;
+  padding:10px 14px;
+  background:#123d68;
+  color:#fff;
+  font-family:"Arial Black",Arial,sans-serif;
+  font-size:1rem;
+}
+.review-body{
+  padding:14px;
+  line-height:1.65;
+  color:#172033;
+  word-break:break-word;
+}
+.review-empty{
+  color:#7a8795;
+  font-style:italic;
+}
+@media(max-width:760px){
+  .review-grid{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -377,7 +416,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbw8GMb-22YifrOWL6JBTcpOXgW6YGnqsY0L-S3Y-JHeU_G3skDRE7eNJ1vR6mDMEscd/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbz7_Cq0GPvqw1Nlo7N3deNBgDEO0iEwOqgMMMeaC7oCfeyGbwEx136ofxuRhF-QNPaC/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -423,7 +462,7 @@ async function loadParticipantInformation(id){
         '<tr><th>International Joint Project1 Group</th><td>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</td></tr>'+
         '<tr><th>International Joint Project2 Group</th><td>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</td></tr>'+
       '</table>'+
-      '<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>'+
+      '<div class="review-grid">'+'<section class="review-card"><h2>Oral review</h2><div class="review-body">'+formatReviewText(p["Oral review"])+'</div></section>'+'<section class="review-card"><h2>Poster review</h2><div class="review-body">'+formatReviewText(p["Poster review"])+'</div></section>'+'</div>'+'<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>'+
       buildParticipantLinks(p)+
       (
         p["Correction Status"]
@@ -727,6 +766,17 @@ async function gasPost(payload){
   }
 
   return await gasJsonp(params,20000);
+}
+
+
+function formatReviewText(value){
+  const text=String(value||"").trim();
+
+  if(!text){
+    return '<span class="review-empty">No review has been submitted yet.</span>';
+  }
+
+  return escapeHtml(text).replace(/\n/g,"<br>");
 }
 
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
