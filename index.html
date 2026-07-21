@@ -384,6 +384,37 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+.review-grid{grid-template-columns:1fr!important}
+.review-summary{display:grid;grid-template-columns:repeat(4,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+.review-metric{border:1px solid #c8d6e4;border-radius:10px;padding:10px;background:#fff}
+.review-metric small{display:block;color:#5f6f82;font-weight:800}
+.review-metric b{display:block;margin-top:2px;font-family:"Arial Black",Arial,sans-serif;font-size:1.15rem;color:#0b1f3a}
+.review-section-title{margin:16px 0 8px;font-family:"Arial Black",Arial,sans-serif;font-size:1rem;color:#0b1f3a}
+.category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.category-item,.criterion-item{border:1px solid #d7e0ea;border-radius:10px;padding:10px;background:#fff}
+.category-head,.criterion-title,.criterion-score,.comment-meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.category-percent{margin-top:4px;color:#5f6f82;font-weight:800;text-align:right}
+.progress-track{width:100%;height:8px;margin-top:7px;border-radius:999px;background:#e5edf5;overflow:hidden}
+.progress-fill{height:100%;background:#123d68}
+.criteria-list{display:grid;gap:7px}
+.criterion-title span{flex:0 0 auto;color:#5f6f82;font-weight:900}
+.criterion-title b{flex:1}
+.criterion-score{flex-wrap:wrap;margin-top:6px;color:#526579;font-size:.82rem;font-weight:800}
+.distribution{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;color:#526579;font-size:.82rem;font-weight:800}
+.comment-section{margin-top:16px}
+.comment-section h3{margin:0 0 7px;font-family:"Arial Black",Arial,sans-serif;font-size:1rem;color:#0b1f3a}
+.comment-item{margin-bottom:7px;border-left:4px solid #123d68;border-radius:6px;padding:9px 11px;background:#fff}
+.comment-meta{margin-bottom:4px;color:#5f6f82}
+.review-meta{margin-top:12px;color:#526579;font-size:.88rem}
+.review-json{white-space:pre-wrap;word-break:break-word;font-size:.82rem}
+@media(max-width:760px){
+  .review-summary{grid-template-columns:1fr 1fr}
+  .category-grid{grid-template-columns:1fr}
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -416,7 +447,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbz7_Cq0GPvqw1Nlo7N3deNBgDEO0iEwOqgMMMeaC7oCfeyGbwEx136ofxuRhF-QNPaC/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycby0VfYN4WSal_JQUUiVbtGgM7O0zcQTEpJs4nHbQSNFpNlfbn4Z2uYDh4xUyMD2OOYc/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -769,14 +800,167 @@ async function gasPost(payload){
 }
 
 
+
 function formatReviewText(value){
   const text=String(value||"").trim();
-
   if(!text){
     return '<span class="review-empty">No review has been submitted yet.</span>';
   }
 
-  return escapeHtml(text).replace(/\n/g,"<br>");
+  let data;
+  try{
+    data=JSON.parse(text);
+  }catch(error){
+    return escapeHtml(text).replace(/\n/g,"<br>");
+  }
+
+  if(data&&data.oralNo)return renderOralReview(data);
+  if(data&&data.posterNo)return renderPosterReview(data);
+
+  return '<pre class="review-json">'+escapeHtml(JSON.stringify(data,null,2))+'</pre>';
+}
+
+function renderOralReview(data){
+  const score=data.score||{};
+  const categories=data.categories||{};
+  const criteria=data.criteria||{};
+  const comments=data.comments||{};
+
+  let html='<div class="review-summary">'+
+    metric('Responses',data.responseCount||0)+
+    metric('Average',num(score.averageTotal)+' / '+num(score.maximumTotal||17))+
+    metric('Achievement',num(score.averagePercent)+'%')+
+    metric('Range',num(score.lowest)+'–'+num(score.highest))+
+  '</div>';
+
+  if(Array.isArray(data.evaluators)&&data.evaluators.length){
+    html+='<div class="review-meta"><b>Evaluators:</b> '+escapeHtml(data.evaluators.join(', '))+'</div>';
+  }
+
+  html+='<h3 class="review-section-title">Category Scores</h3><div class="category-grid">';
+  Object.keys(categories).forEach(function(key){
+    const c=categories[key]||{};
+    html+='<div class="category-item">'+
+      '<div class="category-head"><b>'+escapeHtml(c.label||key)+'</b><span>'+
+      num(c.average)+' / '+num(c.maximum)+'</span></div>'+
+      bar(c.percent||0)+
+      '<div class="category-percent">'+num(c.percent||0)+'%</div>'+
+    '</div>';
+  });
+  html+='</div>';
+
+  html+='<h3 class="review-section-title">Criteria</h3><div class="criteria-list">';
+  Object.keys(criteria).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(no){
+    const c=criteria[no]||{};
+    const percent=Math.round(Number(c.satisfiedRate||0)*100);
+    html+='<div class="criterion-item">'+
+      '<div class="criterion-title"><span>No. '+escapeHtml(no)+'</span><b>'+escapeHtml(c.label||c.key||'')+'</b></div>'+
+      '<div class="criterion-score">'+
+        '<span>Average: '+num(c.average)+' / 1</span>'+
+        '<span>Satisfied: '+num(c.satisfiedCount||0)+'</span>'+
+        '<span>Unsatisfied: '+num(c.unsatisfiedCount||0)+'</span>'+
+        '<span>'+percent+'%</span>'+
+      '</div>'+bar(percent)+
+    '</div>';
+  });
+  html+='</div>';
+
+  html+=commentGroup('Strengths',comments.strengths);
+  html+=commentGroup('Areas for Improvement',comments.improvements);
+  html+=commentGroup('Overall Comments',comments.overall);
+
+  if(data.latestResponse){
+    html+='<div class="review-meta"><b>Latest response:</b> '+escapeHtml(dateText(data.latestResponse))+'</div>';
+  }
+  return html;
+}
+
+function renderPosterReview(data){
+  const score=data.score||{};
+  const criteria=data.criteria||{};
+  const labels={
+    inviting:'Inviting',
+    logical:'Logical',
+    design:'Poster Design',
+    questions:'Questions & Answers'
+  };
+
+  let html='<div class="review-summary">'+
+    metric('Responses',data.responseCount||0)+
+    metric('Average',num(score.average)+' / '+num(score.maximum||4))+
+    metric('Total',num(score.averageTotal)+' / '+num(score.maximumTotal||16))+
+    metric('Achievement',num(score.percent)+'%')+
+  '</div>';
+
+  html+='<h3 class="review-section-title">Criteria</h3><div class="category-grid">';
+  Object.keys(labels).forEach(function(key){
+    const c=criteria[key]||{};
+    const dist=c.distribution||{};
+    const percent=Math.round(Number(c.rate||0)*100);
+    html+='<div class="category-item">'+
+      '<div class="category-head"><b>'+escapeHtml(labels[key])+'</b><span>'+num(c.average)+' / '+num(c.maximum||4)+'</span></div>'+
+      bar(percent)+
+      '<div class="distribution">'+
+        '<span>4: '+num(dist["4"]||0)+'</span>'+
+        '<span>3: '+num(dist["3"]||0)+'</span>'+
+        '<span>2: '+num(dist["2"]||0)+'</span>'+
+        '<span>1: '+num(dist["1"]||0)+'</span>'+
+      '</div>'+
+    '</div>';
+  });
+  html+='</div>';
+
+  if(Array.isArray(data.comments)&&data.comments.length){
+    html+='<section class="comment-section"><h3>Comments</h3>';
+    data.comments.forEach(function(item){
+      html+='<div class="comment-item">'+
+        '<div class="comment-meta">'+(item.timestamp?'<small>'+escapeHtml(dateText(item.timestamp))+'</small>':'')+'</div>'+
+        '<div>'+escapeHtml(item.text||'')+'</div>'+
+      '</div>';
+    });
+    html+='</section>';
+  }
+
+  if(data.latestResponse){
+    html+='<div class="review-meta"><b>Latest response:</b> '+escapeHtml(dateText(data.latestResponse))+'</div>';
+  }
+  return html;
+}
+
+function metric(label,value){
+  return '<div class="review-metric"><small>'+escapeHtml(label)+'</small><b>'+escapeHtml(String(value))+'</b></div>';
+}
+function bar(percent){
+  const safe=Math.max(0,Math.min(100,Number(percent)||0));
+  return '<div class="progress-track"><div class="progress-fill" style="width:'+safe+'%"></div></div>';
+}
+function commentGroup(title,items){
+  if(!Array.isArray(items)||!items.length)return '';
+  let html='<section class="comment-section"><h3>'+escapeHtml(title)+'</h3>';
+  items.forEach(function(item){
+    html+='<div class="comment-item">'+
+      '<div class="comment-meta">'+
+        (item.evaluator?'<b>'+escapeHtml(item.evaluator)+'</b>':'')+
+        (item.timestamp?'<small>'+escapeHtml(dateText(item.timestamp))+'</small>':'')+
+      '</div>'+
+      '<div>'+escapeHtml(item.text||'')+'</div>'+
+    '</div>';
+  });
+  return html+'</section>';
+}
+function num(value){
+  const n=Number(value);
+  if(!Number.isFinite(n))return '0';
+  return Number.isInteger(n)?String(n):n.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+}
+function dateText(value){
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return String(value||'');
+  return new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Tokyo',
+    year:'numeric',month:'short',day:'2-digit',
+    hour:'2-digit',minute:'2-digit'
+  }).format(d);
 }
 
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
