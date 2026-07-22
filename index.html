@@ -415,6 +415,52 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 }
 </style>
 
+
+<style>
+.participant-shell{width:min(720px,calc(100% - 14px))!important;margin:8px auto!important}
+.participant-card{padding:14px!important;border-radius:14px!important}
+#participant-view h1.title-black{font-size:clamp(1.15rem,4.8vw,1.65rem)!important;margin-bottom:6px!important;white-space:nowrap}
+.name-banner{margin:8px 0!important;padding:13px!important;border-radius:12px!important}
+.name-banner .label{font-size:.72rem!important}
+.name-banner .name{font-size:clamp(1.45rem,6.5vw,2.2rem)!important;line-height:1.05!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.info-table{table-layout:fixed;font-size:.8rem!important}
+.info-table th,.info-table td{padding:7px 8px!important;vertical-align:middle}
+.info-table th{width:46%!important;white-space:nowrap;font-size:.72rem!important}
+.info-table td{font-size:.8rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name-correction-button{margin-top:10px!important;padding:9px 12px!important;font-size:.86rem!important}
+.participant-links{gap:8px!important;margin-top:10px!important}
+.participant-button{padding:10px 12px!important;border-radius:11px!important;font-size:.8rem!important}
+.participant-button small{font-size:.66rem!important;line-height:1.3}
+.final-day-note{margin-top:8px!important;padding:8px 10px!important;font-size:.74rem!important}
+
+.participant-announcement{
+  margin:8px 0 10px!important;border:0!important;border-radius:14px!important;
+  background:radial-gradient(circle at top right,rgba(255,255,255,.6),transparent 36%),linear-gradient(135deg,#ffd84d,#ff9c45 52%,#ff6b75)!important;
+  box-shadow:0 7px 18px rgba(255,111,61,.24)!important
+}
+.participant-announcement-title{background:transparent!important;color:#4b2200!important;padding:10px 13px 2px!important;font-size:.88rem!important;letter-spacing:.02em}
+.participant-announcement-title::before{content:"📣 "}
+.participant-announcement-body{padding:7px 13px 12px!important;min-height:0!important;color:#3b1b00!important;font-size:.82rem!important;font-weight:900!important;line-height:1.45!important}
+
+.evaluation-links{margin-top:12px!important}
+.evaluation-button{background:linear-gradient(135deg,#0f6b5a,#138a72)!important;border-color:#0f6b5a!important}
+.poster-evaluation-button{background:linear-gradient(135deg,#6c3fb5,#8b5dd4)!important;border-color:#6c3fb5!important}
+
+.review-grid-bottom{margin-top:18px!important;padding-top:14px;border-top:2px dashed #c8d6e4}
+.review-card h2{font-size:.88rem!important;padding:8px 10px!important}
+.review-body{padding:9px!important;font-size:.76rem!important}
+.review-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.category-grid{grid-template-columns:1fr!important}
+
+@media(max-width:420px){
+  .participant-card{padding:10px!important}
+  #participant-view h1.title-black{font-size:1.05rem!important}
+  .info-table th{width:49%!important;font-size:.64rem!important}
+  .info-table td{font-size:.72rem!important}
+  .participant-button{font-size:.72rem!important;padding:9px!important}
+}
+</style>
+
 </head>
 <body>
 <section id="staff-view" class="view active">
@@ -447,7 +493,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycby0VfYN4WSal_JQUUiVbtGgM7O0zcQTEpJs4nHbQSNFpNlfbn4Z2uYDh4xUyMD2OOYc/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbzoYAKAoraGUbQCorU1bDr-eIEzJfko2ekNwfW4BDL18fyUek1PHnfr0wsC8Thu60h5/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
@@ -493,8 +539,13 @@ async function loadParticipantInformation(id){
         '<tr><th>International Joint Project1 Group</th><td>'+escapeHtml(p["International Joint Project1 Group"]||"")+'</td></tr>'+
         '<tr><th>International Joint Project2 Group</th><td>'+escapeHtml(p["International Joint Project2 Group"]||"")+'</td></tr>'+
       '</table>'+
-      '<div class="review-grid">'+'<section class="review-card"><h2>Oral review</h2><div class="review-body">'+formatReviewText(p["Oral review"])+'</div></section>'+'<section class="review-card"><h2>Poster review</h2><div class="review-body">'+formatReviewText(p["Poster review"])+'</div></section>'+'</div>'+'<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>'+
+      '<button type="button" class="name-correction-button" onclick="openCorrection()">Correct My Name</button>'+
+      buildEvaluationLinks()+
       buildParticipantLinks(p)+
+      '<div class="review-grid review-grid-bottom">'+
+        '<section class="review-card"><h2>Oral review</h2><div class="review-body">'+formatReviewText(p["Oral review"])+'</div></section>'+
+        '<section class="review-card"><h2>Poster review</h2><div class="review-body">'+formatReviewText(p["Poster review"])+'</div></section>'+
+      '</div>'+
       (
         p["Correction Status"]
           ?'<div class="status done">Correction status: '+escapeHtml(p["Correction Status"])+'</div>'
@@ -526,6 +577,20 @@ function hasReachedFinalParticipationDate(finalDate){
   const parts=finalDate.split("/");
   const target=new Date(2026,Number(parts[0])-1,Number(parts[1]),0,0,0);
   return new Date()>=target;
+}
+
+
+function buildEvaluationLinks(){
+  return '<div class="participant-links evaluation-links">'+
+    '<a class="participant-button evaluation-button" href="https://docs.google.com/forms/d/e/1FAIpQLSeqXiiLyy22Q3bSFrx4RBLPsw883ooIdptEVM6ht5wIydjHmw/viewform?usp=header" target="_blank" rel="noopener">'+
+      '<span>Please review Oral presentation that listened<small>Open the oral presentation evaluation form.</small></span>'+
+      '<span>Review →</span>'+
+    '</a>'+
+    '<a class="participant-button evaluation-button poster-evaluation-button" href="https://docs.google.com/forms/d/e/1FAIpQLSe7q9S0Pz5Vu64aAG-vvbAmv6rXVoonx6PFNxxKBYPBzUksmQ/viewform?usp=header" target="_blank" rel="noopener">'+
+      '<span>Please review Poster that listened to the presentation<small>Open the poster presentation evaluation form.</small></span>'+
+      '<span>Review →</span>'+
+    '</a>'+
+  '</div>';
 }
 
 function buildParticipantLinks(p){
