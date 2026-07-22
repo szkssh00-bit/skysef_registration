@@ -477,11 +477,11 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 </section>
 <section class="card checkin-card">
   <h2 class="title-black">Check-in Information</h2>
-  <div id="latest-card" class="latest warning"><div class="latest-name">ゆうた</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-001</b></span><span>Date: <b>8/2</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>88</b></span></div><div class="status syncing">Already checked in.</div></div>
+  <div id="latest-card" class="latest warning"><div class="latest-name">Welcome</div><div>Shizuoka KIta HS</div><div class="latest-grid"><span>ID: <b>SKYSEF2026-001</b></span><span>Date: <b>8/2</b></span><span>Oral: <b>1000</b></span><span>Poster: <b>1000</b></span><span>IJP1: <b>99</b></span><span>IJP2: <b>88</b></span></div><div class="status syncing">Already checked in.</div></div>
   <div class="metrics"><div class="metric"><b id="planned-count">9</b><span>Planned</span></div><div class="metric"><b id="checked-count">3</b><span>Checked in</span></div><div class="metric"><b id="queue-count">0</b><span>Waiting to sync</span></div></div>
   <div id="sync-status" class="status done">Master list synchronized.</div>
   <div class="subhead">Attendance List</div>
-  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>ゆうた</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-001 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
+  <div id="attendance-list" class="list attendance-list"><div class="item"><strong>Welcome</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-xxx / 2026-07-13 13:53:09</small></div><div class="item"><strong>Takagi Yuji</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-002 / 2026-07-13 13:53:09</small></div><div class="item"><strong>Tsukagoshi</strong><span>Shizuoka KIta HS</span><small>ID: SKYSEF2026-003 / 2026-07-13 13:53:09</small></div></div>
 </section>
 <section class="card absent-card">
   <h2 class="title-black">Not Checked-in Today</h2>
@@ -493,7 +493,7 @@ select{width:100%;min-width:0;border:1px solid #afbecd;border-radius:9px;padding
 <section id="participant-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">SKYSEF Participant Information</h1><div id="participant-content"><div class="status syncing">Loading participant information...</div></div></div></div></section>
 <section id="correction-view" class="view"><div class="participant-shell"><div class="participant-card"><h1 class="title-black">Name Correction</h1><div class="form-grid"><label>ID<input id="correction-id" readonly=""></label><label>Current Name (before correction)<input id="correction-current" readonly=""></label><label>New Correct Name<input id="correction-new"></label><label>Note<textarea id="correction-note"></textarea></label></div><div class="form-actions"><button class="primary" onclick="submitCorrection()">Submit</button><button class="secondary" onclick="backToParticipant()">Back</button></div><div id="correction-status" class="status"></div></div></div></section>
 <script>
-const GAS_URL='https://script.google.com/macros/s/AKfycbzoYAKAoraGUbQCorU1bDr-eIEzJfko2ekNwfW4BDL18fyUek1PHnfr0wsC8Thu60h5/exec';
+const GAS_URL='https://script.google.com/macros/s/AKfycbyMjRNyOJGo6GN0XNgexVemtGPRCYRrJspOev3BHrcKb5-7LCrlrFlAcCIfZSNI4Ssj/exec';
 const DATE_CONFIG={"8/2":{flag:"Flag 8/2",attendance:"Attended At 8/2"},"8/3":{flag:"Flag 8/3",attendance:"Attended At 8/3"},"8/4":{flag:"Flag 8/4",attendance:"Attended At 8/4"},"8/5":{flag:"Flag 8/5",attendance:"Attended At 8/5"}};
 let participants=[],participantMap=new Map(),selectedDate="8/2",cameras=[],selectedCameraId="",qr=null,cameraRunning=false,processing=false,lastId="",lastTime=0,syncQueue=[],syncInFlight=false,flushTimer=null,currentParticipantId="";
 window.addEventListener("load",initPage);
